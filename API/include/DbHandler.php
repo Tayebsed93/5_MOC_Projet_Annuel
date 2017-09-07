@@ -202,6 +202,35 @@ class DbHandler {
         return md5(uniqid(rand(), true));
     }
 
+    /**
+     * Fetching all user score
+     * @param String $user_id id of the user
+     */
+    public function getAllUserScore() {
+        $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users");
+        $stmt->execute();
+        $composition = $stmt->get_result();
+        $stmt->close();
+        return $composition;
+    }
+
+
+    /**
+     * Updating score user
+     * @param String $user_id id of the user
+     * @param String $score score integer
+     */
+    public function updateUserScore($user_id, $score) {
+        var_dump($user_id);
+        var_dump($score);
+        $stmt = $this->conn->prepare("UPDATE users SET score = ? where id=? AND role != 'admin' ");
+        $stmt->bind_param("ii", $score, $user_id);
+        $stmt->execute();
+        $num_affected_rows = $stmt->affected_rows;
+        $stmt->close();
+        return $num_affected_rows > 0;
+    }
+
     /* ------------- `composition` table method ------------------ */
 
     /**

@@ -134,6 +134,69 @@ $app->post('/login', function() use ($app) {
  * ------------------------ METHODS WITH AUTHENTICATION ------------------------
  */
 
+
+
+/**
+ * Listing all score of user
+ * method GET
+ * url /user         
+ */
+$app->get('/user', 'authenticate', function() {
+            global $user_id;
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user user
+            $result = $db->getAllUserScore($user_id);
+            $response["error"] = false;
+            $response["users"] = array();
+
+            // looping through result and preparing user array
+            while ($users = $result->fetch_assoc()) {
+                $tmp = array();
+                $tmp["id"] = $users["id"];
+                $tmp["name"] = $users["name"];
+                $tmp["email"] = $users["email"];
+                $tmp["score"] = $users["score"];
+                array_push($response["users"], $tmp);
+            }
+
+            echoRespnse(200, $response);
+        });
+
+
+/**
+ * Updating score user
+ * method PUT
+ * params score
+ * url - /user/
+ */
+
+$app->put('/user', 'authenticate', function() use($app) {
+            // check for required params
+            verifyRequiredParams(array('score'));
+
+            global $user_id;            
+            $score = $app->request->put('score');
+
+            $db = new DbHandler();
+            $response = array();
+
+            // updating size
+            $result = $db->updateUserScore($user_id, $score);
+            if ($result) {
+                // poubelle updated successfully
+                $response["error"] = false;
+                $response["message"] = "Score user updated successfully";
+            } else {
+                // poubelle failed to update
+                $response["error"] = true;
+                $response["message"] = "Score user failed to update. Please try again!";
+            }
+            echoRespnse(200, $response);
+        });
+
+
 /**
  * Listing all composition of particual user
  * method GET
