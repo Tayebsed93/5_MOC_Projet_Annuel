@@ -142,12 +142,11 @@ $app->post('/login', function() use ($app) {
  * url /user         
  */
 $app->get('/user', 'authenticate', function() {
-            global $user_id;
             $response = array();
             $db = new DbHandler();
 
             // fetching all user user
-            $result = $db->getAllUserScore($user_id);
+            $result = $db->getAllUserScore();
             $response["error"] = false;
             $response["users"] = array();
 
