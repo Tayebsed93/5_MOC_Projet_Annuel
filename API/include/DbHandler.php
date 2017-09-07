@@ -39,7 +39,7 @@ class DbHandler {
             $api_key = $this->generateApiKey();
 
             // insert query
-            $stmt = $this->conn->prepare("INSERT INTO users(name, email, password_hash, api_key, status) values(?, ?, ?, ?, 1)");
+            $stmt = $this->conn->prepare("INSERT INTO users(name, email, password_hash, api_key, role) values(?, ?, ?, ?, 0)");
             $stmt->bind_param("ssss", $name, $email, $password_hash, $api_key);
 
             $result = $stmt->execute();
@@ -123,17 +123,17 @@ class DbHandler {
      * @param String $email User email id
      */
     public function getUserByEmail($email) {
-        $stmt = $this->conn->prepare("SELECT name, email, api_key, status, created_at FROM users WHERE email = ?");
+        $stmt = $this->conn->prepare("SELECT name, email, api_key, role, created_at FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         if ($stmt->execute()) {
             // $user = $stmt->get_result()->fetch_assoc();
-            $stmt->bind_result($name, $email, $api_key, $status, $created_at);
+            $stmt->bind_result($name, $email, $api_key, $role, $created_at);
             $stmt->fetch();
             $user = array();
             $user["name"] = $name;
             $user["email"] = $email;
             $user["api_key"] = $api_key;
-            $user["status"] = $status;
+            $user["role"] = $role;
             $user["created_at"] = $created_at;
             $stmt->close();
             return $user;
@@ -202,33 +202,33 @@ class DbHandler {
         return md5(uniqid(rand(), true));
     }
 
-    /* ------------- `poubelle` table method ------------------ */
+    /* ------------- `composition` table method ------------------ */
 
     /**
-     * Creating new poubelle
-     * @param String $user_id user id to whom sujet belongs to
-     * @param String $sujet sujet text
+     * Creating new composition
+     * @param String $user_id user id to whom player belongs to
+     * @param String $player player text
      */
-    public function createPoubelle($user_id, $sujet) {
-        $stmt = $this->conn->prepare("INSERT INTO poubelle(sujet) VALUES(?)");
-        $stmt->bind_param("s", $sujet);
+    public function createComposition($user_id, $player,$nation) {
+        $stmt = $this->conn->prepare("INSERT INTO composition(player,nation) VALUES(?,?)");
+        $stmt->bind_param("ss", $player,$nation);
         $result = $stmt->execute();
         $stmt->close();
 
         if ($result) {
-            // poubelle row created
-            // now assign the poubelle to user
-            $new_poubelle_id = $this->conn->insert_id;
-            $res = $this->createUserPoubelle($user_id, $new_poubelle_id);
+            // composition row created
+            // now assign the composition to user
+            $new_composition_id = $this->conn->insert_id;
+            $res = $this->createUserComposition($user_id, $new_composition_id);
             if ($res) {
-                // poubelle created successfully
-                return $new_poubelle_id;
+                // composition created successfully
+                return $new_composition_id;
             } else {
-                // poubelle failed to create
+                // composition failed to create
                 return NULL;
             }
         } else {
-            // poubelle failed to create
+            // composition failed to create
             return NULL;
         }
     }
@@ -258,16 +258,31 @@ class DbHandler {
     }
 
     /**
-     * Fetching all user poubelles
+     * Fetching all user composition
      * @param String $user_id id of the user
      */
-    public function getAllUserPoubelle($user_id) {
-        $stmt = $this->conn->prepare("SELECT t.* FROM poubelle t, user_poubelle ut WHERE t.id = ut.poubelle_id AND ut.user_id = ?");
+    public function getAllUserComposition($user_id) {
+        $stmt = $this->conn->prepare("SELECT c.* FROM composition c, user_composition uc WHERE c.id = uc.composition_id AND uc.user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $poubelles = $stmt->get_result();
+        $composition = $stmt->get_result();
         $stmt->close();
-        return $poubelles;
+        return $composition;
+    }
+
+        /**
+     * Fetching all user composition
+     * @param String $user_id id of the user
+     */
+    public function getAllPlayer($nationality) {
+        $stmt = $this->conn->prepare("SELECT * FROM player WHERE Rating > 78 AND Nationality = ?");
+        //$stmt->bind_param("i", $user_id);
+  
+        $stmt->bind_param("s", $nationality);
+        $stmt->execute();
+        $composition = $stmt->get_result();
+        $stmt->close();
+        return $composition;
     }
 
         /**
@@ -396,16 +411,16 @@ class DbHandler {
         return $num_affected_rows > 0;
     }
 
-    /* ------------- `user_poubelle` table method ------------------ */
+    /* ------------- `user_composition` table method ------------------ */
 
     /**
-     * Function to assign a poubelle to user
+     * Function to assign a composition to user
      * @param String $user_id id of the user
-     * @param String $poubelle_id id of the poubelle
+     * @param String $composition_id id of the composition
      */
-    public function createUserPoubelle($user_id, $poubelle_id) {
-        $stmt = $this->conn->prepare("INSERT INTO user_poubelle(user_id, poubelle_id) values(?, ?)");
-        $stmt->bind_param("ii", $user_id, $poubelle_id);
+    public function createUserComposition($user_id, $composition_id) {
+        $stmt = $this->conn->prepare("INSERT INTO user_composition(user_id, composition_id) values(?, ?)");
+        $stmt->bind_param("ii", $user_id, $composition_id);
         $result = $stmt->execute();
 
         if (false === $result) {
@@ -414,6 +429,26 @@ class DbHandler {
         $stmt->close();
         return $result;
     }
+
+    /* ------------- `player` table method ------------------ */
+
+    /**
+     * ImportCSV in table player
+     * @param String $Name name
+     * @param String $Nationality Nationality text
+     * @param String $Club text
+     */
+
+    public function importPlayerCSV($Name, $Nationality, $National_Position, $Club, $Club_Position, $Club_Joining, $Contract_Expiry, $Rating, $Age) {
+
+        $stmt = $this->conn->prepare("INSERT INTO player(Name, Nationality, National_Position, Club, Club_Position, Club_Joining, Contract_Expiry, Rating, Age) VALUES(?,?,?,?,?,?,?,?,?)");
+        $stmt->bind_param("sssssssss", $Name, $Nationality, $National_Position, $Club, $Club_Position, $Club_Joining, $Contract_Expiry, $Rating, $Age);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+
+    }
+
 
 }
 

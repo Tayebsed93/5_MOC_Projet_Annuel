@@ -114,6 +114,7 @@ $app->post('/login', function() use ($app) {
                     $response['name'] = $user['name'];
                     $response['email'] = $user['email'];
                     $response['apiKey'] = $user['api_key'];
+                    $response['role'] = $user['role'];
                     $response['createdAt'] = $user['created_at'];
                 } else {
                     // unknown error occurred
@@ -134,30 +135,65 @@ $app->post('/login', function() use ($app) {
  */
 
 /**
- * Listing all poubelles of particual user
+ * Listing all composition of particual user
  * method GET
- * url /poubelles         
+ * url /composition         
  */
-$app->get('/poubelles', 'authenticate', function() {
+$app->get('/composition', 'authenticate', function() {
             global $user_id;
             $response = array();
             $db = new DbHandler();
 
-            // fetching all user poubelles
-            $result = $db->getAllUserPoubelle($user_id);
+            // fetching all user composition
+            $result = $db->getAllUserComposition($user_id);
 
             $response["error"] = false;
-            $response["poubelle"] = array();
+            $response["composition"] = array();
 
-            // looping through result and preparing poubelle array
-            while ($poubelle = $result->fetch_assoc()) {
+            // looping through result and preparing composition array
+            while ($composition = $result->fetch_assoc()) {
                 $tmp = array();
-                $tmp["id"] = $poubelle["id"];
-                $tmp["sujet"] = $poubelle["sujet"];
-                $tmp["status"] = $poubelle["status"];
-                $tmp["size"] = $poubelle["size"];
-                $tmp["createdAt"] = $poubelle["created_at"];
-                array_push($response["poubelle"], $tmp);
+                $tmp["id"] = $composition["id"];
+                $tmp["nation"] = $composition["nation"];
+                $tmp["player"] = $composition["player"];
+                $tmp["createdAt"] = $composition["created_at"];
+                array_push($response["composition"], $tmp);
+            }
+
+            echoRespnse(200, $response);
+        });
+
+
+/**
+ * Listing all player of particual user
+ * method GET
+ * url /player         
+ */
+$app->post('/player', 'authenticate', function() use ($app) {
+            verifyRequiredParams(array('nationality'));
+
+            $nationality = $app->request()->post('nationality');
+            global $user_id;
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user player
+            $result = $db->getAllPlayer($nationality);
+
+            $response["error"] = false;
+            $response["player"] = array();
+
+            // looping through result and preparing player array
+            while ($player = $result->fetch_assoc()) {
+                $tmp = array();
+                $tmp["id"] = $player["id"];
+                $tmp["Name"] = $player["Name"];
+                $tmp["Nationality"] = $player["Nationality"];
+                $tmp["Club"] = $player["Club"];
+                $tmp["Rating"] = $player["Rating"];
+                $tmp["Age"] = $player["Age"];
+
+                array_push($response["player"], $tmp);
             }
 
             echoRespnse(200, $response);
@@ -193,32 +229,33 @@ $app->get('/poubelles/:id', 'authenticate', function($poubelle_id) {
         });
 
 /**
- * Creating new poubelle in db
+ * Creating new composition in db
  * method POST
  * params - name
- * url - /poubelles/
+ * url - /composition
  */
-$app->post('/poubelles','authenticate', function() use ($app) {
+$app->post('/composition','authenticate', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('sujet'));
+            verifyRequiredParams(array('player', 'nation'));
 
             $response = array();
-            $sujet = $app->request->post('sujet');
+            $player = $app->request->post('player');
+            $nation = $app->request->post('nation');
 
             global $user_id;
             $db = new DbHandler();
 
-            // creating new poubelle
-            $poubelle_id = $db->createPoubelle($user_id, $sujet);
+            // creating new composition
+            $composition_id = $db->createComposition($user_id, $player, $nation);
 
-            if ($poubelle_id != NULL) {
+            if ($composition_id != NULL) {
                 $response["error"] = false;
-                $response["message"] = "Poubelle created successfully";
-                $response["poubelle_id"] = $poubelle_id;
+                $response["message"] = "Composition created successfully";
+                $response["composition_id"] = $composition_id;
                 echoRespnse(201, $response);
             } else {
                 $response["error"] = true;
-                $response["message"] = "Failed to create poubelle. Please try again";
+                $response["message"] = "Failed to create composition. Please try again";
                 echoRespnse(200, $response);
             }            
         });
@@ -295,38 +332,6 @@ $app->post('/poubelles/size', 'authenticate', function() use ($app) {
 
         });
         
-
-/**
- * Updating all existing poubelle in 0
- * method PUT
- * params size
- * url - /clearpoubelles/:id
- */
-/*
-$app->put('/clearpoubelles', 'authenticate', function() use($app) {
-            // check for required params
-            //verifyRequiredParams(array('size'));
-
-            global $user_id;            
-            $size = $app->request->put('size');
-
-            $db = new DbHandler();
-            $response = array();
-
-            // updating size
-            $result = $db->updateClearPoubelle();
-            if ($result) {
-                // poubelle updated successfully
-                $response["error"] = false;
-                $response["message"] = "Poubelle updated successfully";
-            } else {
-                // poubelle failed to update
-                $response["error"] = true;
-                $response["message"] = "Poubelle failed to update. Please try again!";
-            }
-            echoRespnse(200, $response);
-        });
-*/
 
 /**
  * Updating existing poubelle
