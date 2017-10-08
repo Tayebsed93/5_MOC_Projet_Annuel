@@ -207,7 +207,7 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllUserScore() {
-        $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users");
+        $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users ORDER BY score DESC");
         $stmt->execute();
         $composition = $stmt->get_result();
         $stmt->close();
