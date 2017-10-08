@@ -516,10 +516,10 @@
             </objects>
             <point key="canvasLocation" x="1300" y="367"/>
         </scene>
-        <!--Inscription Controller-->
+        <!--Register Controller-->
         <scene sceneID="QyR-be-ofe">
             <objects>
-                <viewController id="LgW-Vt-kl7" customClass="InscriptionController" customModule="MyFoot" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="LgW-Vt-kl7" customClass="RegisterController" customModule="MyFoot" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="3zy-dX-f8k"/>
                         <viewControllerLayoutGuide type="bottom" id="Ozi-dG-WJw"/>

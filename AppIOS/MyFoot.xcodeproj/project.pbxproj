@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		6D01BCAB1F855FA000C24DA6 /* ScoreController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D01BCAA1F855FA000C24DA6 /* ScoreController.swift */; };
-		6D0DE74D1F88DDED001BB646 /* InscriptionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D0DE74C1F88DDED001BB646 /* InscriptionController.swift */; };
 		6D2426431F85654E00157787 /* NavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2426421F85654E00157787 /* NavigationController.swift */; };
 		6D2426461F8573FC00157787 /* ScoreBDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2426451F8573FC00157787 /* ScoreBDD.swift */; };
 		6D2570531F698BC9000AE4C3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2570521F698BC9000AE4C3 /* AppDelegate.swift */; };
@@ -24,13 +23,13 @@
 		6D6DE8871F71C30B000E143C /* CompositionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6DE8861F71C30B000E143C /* CompositionController.swift */; };
 		6D9B7EB51F698DB200846BA0 /* LoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9B7EB41F698DB200846BA0 /* LoginController.swift */; };
 		6D9B7EB71F698EC800846BA0 /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9B7EB61F698EC800846BA0 /* HomeController.swift */; };
+		6DC033261F8A739E0088AB6D /* RegisterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC033251F8A739E0088AB6D /* RegisterController.swift */; };
 		B433A9E3645B038F6B2ED0AC /* Pods_MyFoot.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED985C96C118273E6FF7926A /* Pods_MyFoot.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		50F763B61BA558BA5397EB51 /* Pods-MyFoot.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MyFoot.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MyFoot/Pods-MyFoot.debug.xcconfig"; sourceTree = "<group>"; };
 		6D01BCAA1F855FA000C24DA6 /* ScoreController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreController.swift; sourceTree = "<group>"; };
-		6D0DE74C1F88DDED001BB646 /* InscriptionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InscriptionController.swift; path = ../InscriptionController.swift; sourceTree = "<group>"; };
 		6D2426421F85654E00157787 /* NavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationController.swift; sourceTree = "<group>"; };
 		6D2426451F8573FC00157787 /* ScoreBDD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreBDD.swift; sourceTree = "<group>"; };
 		6D2426471F8574C400157787 /* MyFoot 5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "MyFoot 5.xcdatamodel"; sourceTree = "<group>"; };
@@ -52,6 +51,7 @@
 		6D6DE8861F71C30B000E143C /* CompositionController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompositionController.swift; sourceTree = "<group>"; };
 		6D9B7EB41F698DB200846BA0 /* LoginController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginController.swift; sourceTree = "<group>"; };
 		6D9B7EB61F698EC800846BA0 /* HomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
+		6DC033251F8A739E0088AB6D /* RegisterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterController.swift; sourceTree = "<group>"; };
 		D864FD51C9F4B9D3A545D825 /* Pods-MyFoot.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MyFoot.release.xcconfig"; path = "Pods/Target Support Files/Pods-MyFoot/Pods-MyFoot.release.xcconfig"; sourceTree = "<group>"; };
 		ED985C96C118273E6FF7926A /* Pods_MyFoot.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MyFoot.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -170,7 +170,7 @@
 		6D61C7091F77E70300F17A63 /* Login */ = {
 			isa = PBXGroup;
 			children = (
-				6D0DE74C1F88DDED001BB646 /* InscriptionController.swift */,
+				6DC033251F8A739E0088AB6D /* RegisterController.swift */,
 				6D9B7EB41F698DB200846BA0 /* LoginController.swift */,
 			);
 			name = Login;
@@ -312,7 +312,7 @@
 				6D61C7011F75C40C00F17A63 /* PlayerBDD.swift in Sources */,
 				6D01BCAB1F855FA000C24DA6 /* ScoreController.swift in Sources */,
 				6D2E8F821F75AB90004F5E30 /* DataManager.swift in Sources */,
-				6D0DE74D1F88DDED001BB646 /* InscriptionController.swift in Sources */,
+				6DC033261F8A739E0088AB6D /* RegisterController.swift in Sources */,
 				6D61C6FE1F75C30500F17A63 /* PlayerController.swift in Sources */,
 				6D9B7EB51F698DB200846BA0 /* LoginController.swift in Sources */,
 				6D2E8F841F75ABB3004F5E30 /* FileManager.swift in Sources */,
