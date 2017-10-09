@@ -227,6 +227,35 @@ $app->get('/composition', 'authenticate', function() {
 
 
 /**
+ * Listing all composition of particual user
+ * method GET
+ * url /composition         
+ */
+$app->get('/composition/result', 'authenticate', function() {
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user composition
+            $result = $db->getResultComposition();
+
+            $response["error"] = false;
+            $response["composition"] = array();
+
+            // looping through result and preparing composition array
+            while ($composition = $result->fetch_assoc()) {
+                $tmp = array();
+                $tmp["id"] = $composition["id"];
+                $tmp["nation"] = $composition["nation"];
+                $tmp["player"] = $composition["player"];
+                $tmp["createdAt"] = $composition["created_at"];
+                array_push($response["composition"], $tmp);
+            }
+
+            echoRespnse(200, $response);
+        });
+
+
+/**
  * Listing all player of particual user
  * method GET
  * url /player         
@@ -315,6 +344,8 @@ $app->post('/composition','authenticate', function() use ($app) {
                 $response["message"] = "Composition created successfully";
                 $response["composition_id"] = $composition_id;
                 echoRespnse(201, $response);
+                $res = $db->createViewCompoAdmin();
+                $res2 = $db->createViewCompoNoAdmin();
             } else {
                 $response["error"] = true;
                 $response["message"] = "Failed to create composition. Please try again";

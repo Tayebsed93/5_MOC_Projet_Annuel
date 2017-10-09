@@ -39,6 +39,9 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     var names = [String]()
     var ages = [Double]()
     
+    var newapikey = String()
+    var nation = [String]()
+    
     var players: [Player]?
     var composition = [String]()
     
@@ -55,6 +58,10 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     public var addressUrlString = "http://localhost:8888/FootAPI/API/v1"
     public var playerUrlString = "/player"
     public var playerUrlCompo = "/composition"
+    public var playerUrlCompoResult = "/composition/result"
+    public var scoreUrl = "/user"
+    
+    
     
     //let defaults = UserDefaults.standard
     override func viewDidLoad() {
@@ -293,10 +300,10 @@ class CompositionController: UIViewController, UITextFieldDelegate {
                         if let messageError = json["message"]
                         {
                             self.alerteMessage(message: messageError as! String)
+                            self.callAPIResultCompo()
                         }
                         
-                        
-                        //self.isPlayer = false
+
                 }
                 
                 
@@ -308,6 +315,124 @@ class CompositionController: UIViewController, UITextFieldDelegate {
         }
         ;task.resume()
     }
+    
+    
+    ///
+    //******* Resultat de la compo
+    ////
+    func callAPIResultCompo() {
+        let defaults = UserDefaults.standard
+        let urlToRequest = addressUrlString+playerUrlCompoResult
+        let url4 = URL(string: urlToRequest)!
+        let session4 = URLSession.shared
+        let request = NSMutableURLRequest(url: url4)
+        
+        request.addValue(defaults.string(forKey: defaultsKeys.key11)!, forHTTPHeaderField: "Authorization")
+        request.httpMethod = "GET"
+        request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
+        
+        
+        let task = session4.dataTask(with: request as URLRequest)
+        { (data, response, error) in
+            guard let _: Data = data, let _: URLResponse = response, error == nil else
+            {
+                
+                print("ERROR: \(error?.localizedDescription)")
+                
+                self.alerteMessage(message: (error?.localizedDescription)!)
+                return
+            }
+            let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+            
+            //JSONSerialization in Object
+            do {
+                let json = try JSONSerialization.jsonObject(with: data!, options:.allowFragments) as! [String : AnyObject]
+                DispatchQueue.main.async()
+                    {
+                        if let compositions = json["composition"] as? [[String: Any]] {
+                            
+                            for composition in compositions {
+                                if let _nation = composition["nation"]{
+                                    
+                                    self.nation.append(_nation as! String)
+                                    
+                                }
+                                if let _api_key = composition["api_key"]{
+                                    //self.newapikey.append(_api_key as! String)
+                                    self.newapikey = _api_key as! String
+                                }
+                            }
+                        }
+                        
+                        if let messageError = json["message"]
+                        {
+                            self.alerteMessage(message: messageError as! String)
+                        }
+                        
+                        print(self.newapikey)
+                        for na in self.nation {
+                            if na == self.nationality {
+                                self.callAPIScore(newkey: self.newapikey)
+                            }
+                        }
+                        //self.isPlayer = false
+                }
+                
+            } catch let error as NSError {
+                print("Failed to load: \(error.localizedDescription)")
+            }
+        }
+        ;task.resume()
+    }
+    
+    
+    ///
+    //******* Ajout du score
+    ////
+    func callAPIScore(newkey:String) {
+        let defaults = UserDefaults.standard
+        let urlToRequest = addressUrlString+scoreUrl
+        let url4 = URL(string: urlToRequest)!
+        let session4 = URLSession.shared
+        let request = NSMutableURLRequest(url: url4)
+        
+        request.addValue(defaults.string(forKey: defaultsKeys.key11)!, forHTTPHeaderField: "Authorization")
+        request.httpMethod = "PUT"
+        request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
+        
+        
+        let task = session4.dataTask(with: request as URLRequest)
+        { (data, response, error) in
+            guard let _: Data = data, let _: URLResponse = response, error == nil else
+            {
+                
+                print("ERROR: \(error?.localizedDescription)")
+                
+                self.alerteMessage(message: (error?.localizedDescription)!)
+                return
+            }
+            let dataString = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
+            
+            //JSONSerialization in Object
+            do {
+                let json = try JSONSerialization.jsonObject(with: data!, options:.allowFragments) as! [String : AnyObject]
+                DispatchQueue.main.async()
+                    {
+                        if let messageError = json["message"]
+                        {
+                            
+                        }
+                }
+                
+            } catch let error as NSError {
+                print("Failed to load: \(error.localizedDescription)")
+            }
+            
+        }
+        ;task.resume()
+    }
+    
+    
     
     @IBAction func BtnvaliderCompo(_ sender: Any) {
         // create the alert

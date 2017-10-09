@@ -28,10 +28,7 @@ class ScoreController: UIViewController {
     override func loadView() {
         super.loadView()
         
-        
-        
         callAPIScore()
-        
         loadData()
         
         navigationController?.navigationBar.isTranslucent = false
@@ -51,16 +48,18 @@ class ScoreController: UIViewController {
         loadingView.tintColor = UIColor(red: 78/255.0, green: 221/255.0, blue: 200/255.0, alpha: 1.0)
         tableView.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(0.5 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC), execute: {
+                print("lool")
+                //self?.clearData()
+                self?.callAPIScore()
+                self?.loadData()
                 
                 self?.tableView.dg_stopLoading()
+                self?.tableView.reloadData()
                 
             })
             }, loadingView: loadingView)
         tableView.dg_setPullToRefreshFillColor(UIColor(red: 57/255.0, green: 67/255.0, blue: 89/255.0, alpha: 1.0))
         tableView.dg_setPullToRefreshBackgroundColor(tableView.backgroundColor!)
-        
-        
-
     }
     
     deinit {
@@ -134,8 +133,6 @@ extension ScoreController: UITableViewDataSource {
         request.addValue("226f791098549052f704eb37b2ae7999", forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
         request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
-        //let paramString = String(format:"nationality=%@",self.nationality)
-        //request.httpBody = paramString.data(using: String.Encoding.utf8)
         
         
         let task = session4.dataTask(with: request as URLRequest)
@@ -174,7 +171,7 @@ extension ScoreController: UITableViewDataSource {
                             self.alerteMessage(message: messageError as! String)
                         }
                         
-                        
+                        self.clearData()
                         self.setupData(_name: self.names, _score: self.scoresresult)
                         
                         //self.isPlayer = false

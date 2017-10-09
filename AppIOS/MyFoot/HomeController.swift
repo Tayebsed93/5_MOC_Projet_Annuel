@@ -33,7 +33,12 @@ class HomeController: UIViewController, UITextFieldDelegate {
     
     var nation = [String]()
     
+    struct defaultsKeys {
+        static let key11 = "11"
+        
+    }
     
+    let defaults = UserDefaults.standard
     
     @IBOutlet weak var anneeText: UITextField!
     let button = UIButton(type: UIButtonType.custom)
@@ -41,6 +46,7 @@ class HomeController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        defaults.set(self.passapikey, forKey: defaultsKeys.key11)
         
         self.isPlayer = true
         
@@ -107,7 +113,7 @@ class HomeController: UIViewController, UITextFieldDelegate {
         let url4 = URL(string: urlToRequest)!
         let session4 = URLSession.shared
         let request = NSMutableURLRequest(url: url4)
-        request.addValue(self.passapikey, forHTTPHeaderField: "Authorization")
+        request.addValue(defaults.string(forKey: defaultsKeys.key11)!, forHTTPHeaderField: "Authorization")
         request.httpMethod = "GET"
         request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
         
@@ -174,6 +180,8 @@ class HomeController: UIViewController, UITextFieldDelegate {
         }
         ;task.resume()
     }
+    
+    
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

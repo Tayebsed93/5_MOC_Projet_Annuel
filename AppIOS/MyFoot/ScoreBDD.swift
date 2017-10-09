@@ -24,12 +24,13 @@ extension ScoreController {
                     let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
                     
                     let objects = try(context.fetch(fetchRequest)) as? [NSManagedObject]
+                    context.persistentStoreCoordinator?.managedObjectModel.entities
                     
                     for object in objects! {
+                        
                         context.delete(object)
                     }
                 }
-                
                 try(context.save())
                 
                 
@@ -65,12 +66,13 @@ extension ScoreController {
             }
         }
         
-        loadData()
+        //loadData()
         
     }
     
     
     func loadData() {
+        
         
         if let context = DataManager.shared.objectContext {
             

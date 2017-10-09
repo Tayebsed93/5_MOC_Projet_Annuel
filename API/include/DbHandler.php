@@ -299,6 +299,61 @@ class DbHandler {
         return $composition;
     }
 
+
+    /**
+     * Fetching all user composition
+     * @param String $user_id id of the user
+     */
+    public function getResultComposition() {
+        $stmt = $this->conn->prepare("SELECT * FROM touslesjoueursnoadmin noadmin WHERE EXISTS(SELECT * FROM touslesjoueursadmin c2 
+            WHERE c2.nation = noadmin.nation AND c2.player = noadmin.player)");
+        //$stmt->bind_param("i", $user_id);
+
+        $stmt->execute();
+        $composition = $stmt->get_result();
+        var_dump($composition)
+        $stmt->close();
+        return $composition;
+    }
+
+            /**
+     * Create view composition no admin
+     * @param no param
+     */
+    public function createViewCompoNoAdmin() {
+        $stmt = $this->conn->prepare("CREATE OR REPLACE VIEW touslesjoueursnoadmin AS
+        SELECT c.*, u.api_key
+        FROM composition c, user_composition uc, users u
+        WHERE c.id = uc.composition_id
+        AND u.id =  uc.user_id
+        AND uc.user_id != 1");
+        //$stmt->bind_param("i", $user_id);
+  
+        //$stmt->bind_param("s", $nationality);
+        $stmt->execute();
+        $composition = $stmt->get_result();
+        $stmt->close();
+        return $composition;
+    }
+
+    /**
+     * Create view composition admin
+     * @param no param
+     */
+    public function createViewCompoAdmin() {
+        $stmt = $this->conn->prepare("CREATE OR REPLACE VIEW touslesjoueursadmin AS
+        SELECT c.* 
+        FROM composition c, user_composition uc 
+        WHERE c.id = uc.composition_id AND uc.user_id = 1");
+        //$stmt->bind_param("i", $user_id);
+  
+        //$stmt->bind_param("s", $nationality);
+        $stmt->execute();
+        $composition = $stmt->get_result();
+        $stmt->close();
+        return $composition;
+    }
+
         /**
      * Fetching all user composition
      * @param String $user_id id of the user
