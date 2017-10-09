@@ -40,7 +40,6 @@ class LoginController: UIViewController {
     }
     
     @IBAction func btnLogin(_ sender: Any) {
-        print("click")
         callAPILogin()
     }
     

@@ -155,20 +155,25 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MKx-EN-vTC">
                                 <rect key="frame" x="95" y="72" width="184" height="103"/>
+                                <accessibility key="accessibilityConfiguration" identifier="France">
+                                    <bool key="isElement" value="YES"/>
+                                </accessibility>
                                 <state key="normal" title="Button" image="France"/>
                                 <connections>
                                     <action selector="FranceClick:" destination="sjz-Qa-l7e" eventType="touchUpInside" id="FFO-Bt-aKI"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Adw-Xs-qA1">
+                            <button opaque="NO" tag="1" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Adw-Xs-qA1">
                                 <rect key="frame" x="95" y="204" width="184" height="103"/>
+                                <accessibility key="accessibilityConfiguration" identifier="Germany"/>
                                 <state key="normal" title="Button" image="Germany"/>
                                 <connections>
                                     <action selector="AllemagneClick:" destination="sjz-Qa-l7e" eventType="touchUpInside" id="r5w-gZ-oTx"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dN9-Gz-9v4">
+                            <button opaque="NO" tag="2" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dN9-Gz-9v4">
                                 <rect key="frame" x="95" y="341" width="184" height="103"/>
+                                <accessibility key="accessibilityConfiguration" identifier="Italy"/>
                                 <state key="normal" title="Button" image="Italy"/>
                                 <connections>
                                     <action selector="ItalieClick:" destination="sjz-Qa-l7e" eventType="touchUpInside" id="s9l-fE-SEd"/>
@@ -228,6 +233,14 @@
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <outlet property="France" destination="fzt-t8-vbE" id="P69-Fu-BVg"/>
+                        <outlet property="Germany" destination="skb-Ud-qqf" id="9kz-Ay-95B"/>
+                        <outlet property="Italy" destination="9cf-75-DMC" id="tWY-Eh-jyz"/>
+                        <outlet property="btnFrance" destination="MKx-EN-vTC" id="R8c-qH-pfF"/>
+                        <outlet property="btnGermany" destination="Adw-Xs-qA1" id="Pgh-PE-KXz"/>
+                        <outlet property="btnItaly" destination="dN9-Gz-9v4" id="NV5-g5-Zju"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dO5-vK-nei" sceneMemberID="firstResponder"/>
             </objects>

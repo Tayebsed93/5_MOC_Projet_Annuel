@@ -26,10 +26,13 @@ class CompositionController: UIViewController, UITextFieldDelegate {
         static let key8 = "8"
         static let key9 = "9"
         static let key10 = "10"
+        static let key11 = "11"
+        
     }
     
     
     var nationality = String()
+    var stringComposition = String()
     
     var passapikey = String()
     var dates = [Int]()
@@ -37,13 +40,14 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     var ages = [Double]()
     
     var players: [Player]?
-    var composition: [String]?
+    var composition = [String]()
     
     var isPlayer = Bool()
     
     var curentName = String()
     var curentTag = Int()
     
+    let defaults = UserDefaults.standard
     
     @IBOutlet var BtnGroup: [UIButton]!
     
@@ -52,16 +56,14 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     public var playerUrlString = "/player"
     public var playerUrlCompo = "/composition"
     
-    
+    //let defaults = UserDefaults.standard
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        let defaults = UserDefaults.standard
-        
         
         if isPlayer == true {
             //Supprime tout
             defaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+            defaults.set(self.passapikey, forKey: defaultsKeys.key11)
             callAPIPlayer()
         }
         else {
@@ -107,58 +109,61 @@ class CompositionController: UIViewController, UITextFieldDelegate {
             }
         }
 
+        
         // Getting
 
         if let string0 = defaults.string(forKey: defaultsKeys.key0) {
             BtnGroup[0].setTitle(string0, for: .normal)
-            composition?.append(string0)
+            composition.append(string0)
             
         }
         if let string1 = defaults.string(forKey: defaultsKeys.key1) {
             BtnGroup[1].setTitle(string1, for: .normal)
-            composition?.append(string1)
+            composition.append(string1)
         }
         
         if let string2 = defaults.string(forKey: defaultsKeys.key2) {
             BtnGroup[2].setTitle(string2, for: .normal)
-            composition?.append(string2)
+            composition.append(string2)
         }
         
         if let string3 = defaults.string(forKey: defaultsKeys.key3) {
             BtnGroup[3].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key4) {
             BtnGroup[4].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key5) {
             BtnGroup[5].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key6) {
             BtnGroup[6].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key7) {
             BtnGroup[7].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key8) {
 
             BtnGroup[8].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key9) {
 
             BtnGroup[9].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key10) {
 
             BtnGroup[10].setTitle(string3, for: .normal)
-            composition?.append(string3)
+            composition.append(string3)
         }
+
+        self.stringComposition = composition.joined(separator: ", ")
         
         
         // Do any additional setup after loading the view, typically from a nib.
@@ -166,7 +171,6 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear( animated)
-
         self.navigationController?.setNavigationBarHidden(true, animated: animated)
             
     }
@@ -174,14 +178,13 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     
     func callAPIPlayer() {
 
-        let apiKey = passapikey
         //let config = URLSessionConfiguration.default
         let urlToRequest = addressUrlString+playerUrlString
         let url4 = URL(string: urlToRequest)!
         let session4 = URLSession.shared
         let request = NSMutableURLRequest(url: url4)
         //config.httpAdditionalHeaders = ["Authorization" : apiKey]
-        request.addValue(self.passapikey, forHTTPHeaderField: "Authorization")
+        request.addValue(defaults.string(forKey: defaultsKeys.key11)!, forHTTPHeaderField: "Authorization")
         request.httpMethod = "POST"
         request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
         let paramString = String(format:"nationality=%@",self.nationality)
@@ -242,18 +245,16 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     }
     
     func callAPICompo() {
-        let apiKey = passapikey
-        
-        //let config = URLSessionConfiguration.default
+        let defaults = UserDefaults.standard
         let urlToRequest = addressUrlString+playerUrlCompo
         let url4 = URL(string: urlToRequest)!
         let session4 = URLSession.shared
         let request = NSMutableURLRequest(url: url4)
-        //config.httpAdditionalHeaders = ["Authorization" : apiKey]
-        request.addValue(self.passapikey, forHTTPHeaderField: "Authorization")
+        
+        request.addValue(defaults.string(forKey: defaultsKeys.key11)!, forHTTPHeaderField: "Authorization")
         request.httpMethod = "POST"
         request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
-        let paramString = String(format:"nation=%@&player=%@",self.nationality, "tayeb")
+        let paramString = String(format:"nation=%@&player=%@",self.nationality, stringComposition)
         request.httpBody = paramString.data(using: String.Encoding.utf8)
         
         
