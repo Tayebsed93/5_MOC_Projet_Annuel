@@ -25,11 +25,18 @@ class ScoreController: UIViewController {
     var scoresresult = [Double]()
     var scores: [Score]?
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear( animated)
+        //self.clearData()
+        //callAPIScore()
+        //loadData()
+    }
+    
     override func loadView() {
         super.loadView()
-        
         callAPIScore()
         loadData()
+
         
         navigationController?.navigationBar.isTranslucent = false
         navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
@@ -47,11 +54,9 @@ class ScoreController: UIViewController {
         let loadingView = DGElasticPullToRefreshLoadingViewCircle()
         loadingView.tintColor = UIColor(red: 78/255.0, green: 221/255.0, blue: 200/255.0, alpha: 1.0)
         tableView.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(0.5 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC), execute: {
-                print("lool")
-                //self?.clearData()
-                self?.callAPIScore()
-                self?.loadData()
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(1.5 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC), execute: {
+                //self?.callAPIScore()
+                //self?.loadData()
                 
                 self?.tableView.dg_stopLoading()
                 self?.tableView.reloadData()
@@ -123,6 +128,7 @@ extension ScoreController: UITableViewDataSource {
     
     func callAPIScore() {
         
+        
         let apiKey = passapikey
         //let config = URLSessionConfiguration.default
         let urlToRequest = addressUrlString+playerUrlString
@@ -171,7 +177,7 @@ extension ScoreController: UITableViewDataSource {
                             self.alerteMessage(message: messageError as! String)
                         }
                         
-                        self.clearData()
+
                         self.setupData(_name: self.names, _score: self.scoresresult)
                         
                         //self.isPlayer = false

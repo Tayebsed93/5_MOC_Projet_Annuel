@@ -12,6 +12,37 @@ import CoreData
 
 extension ScoreController {
     
+    func supprimer() {
+        let context = DataManager.shared.objectContext
+        
+        //create a fetch request, telling it about the entity
+        let fetchRequest: NSFetchRequest<Score> = Score.fetchRequest()
+        
+        do {
+            //go get the results
+            let array_users = try context?.fetch(fetchRequest)
+            
+            //You need to convert to NSManagedObject to use 'for' loops
+            for user in array_users as! [NSManagedObject] {
+                //get the Key Value pairs (although there may be a better way to do that...
+                context?.delete(user)
+            }
+            //save the context
+            
+            do {
+                try context?.save()
+                print("saved!")
+            } catch let error as NSError  {
+                print("Could not save \(error), \(error.userInfo)")
+            } catch {
+                
+            }
+            
+        } catch {
+            print("Error with request: \(error)")
+        }
+    }
+    
     func clearData() {
         
         if let context = DataManager.shared.objectContext {
@@ -24,7 +55,7 @@ extension ScoreController {
                     let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
                     
                     let objects = try(context.fetch(fetchRequest)) as? [NSManagedObject]
-                    context.persistentStoreCoordinator?.managedObjectModel.entities
+                    //context.persistentStoreCoordinator?.managedObjectModel.entities
                     
                     for object in objects! {
                         
@@ -42,9 +73,7 @@ extension ScoreController {
     }
     
     func setupData(_name: [String], _score: [Double]) {
-        
         clearData()
-        
         
         for i in 0 ... self.names.count - 1 {
             if let context = DataManager.shared.objectContext {
@@ -55,6 +84,8 @@ extension ScoreController {
                 
                 score.name = _name[i]
                 score.score = _score[i]
+                
+                
                 
                 
                 

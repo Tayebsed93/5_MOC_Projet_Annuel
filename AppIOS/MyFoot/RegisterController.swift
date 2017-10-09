@@ -82,8 +82,15 @@ class RegisterController: UIViewController {
                         
                         if let messageError = json["message"]
                         {
-                            self.dismiss(animated: true, completion: nil)
+                            
                             self.alerteMessage(message: messageError as! String)
+                            if messageError as! String == "You are successfully registered" {
+                                let storyboard : UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+                                let tabVc = storyboard.instantiateViewController(withIdentifier: "LoginController") 
+                                self.present(tabVc, animated: true, completion: nil)
+                                //self.dismiss(animated: true, completion: nil)
+                            }
+                            
                             
                         }
                         

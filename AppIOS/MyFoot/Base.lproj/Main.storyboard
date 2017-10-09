@@ -660,7 +660,7 @@
         <!--Login Controller-->
         <scene sceneID="AQX-gR-JW1">
             <objects>
-                <viewController id="2Qt-cc-IRn" customClass="LoginController" customModule="MyFoot" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="LoginController" id="2Qt-cc-IRn" customClass="LoginController" customModule="MyFoot" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="nyV-vk-GCo"/>
                         <viewControllerLayoutGuide type="bottom" id="73f-JA-qd2"/>

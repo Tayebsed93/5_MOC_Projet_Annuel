@@ -46,6 +46,7 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     var composition = [String]()
     
     var isPlayer = Bool()
+    var isCorrect = Bool()
     
     var curentName = String()
     var curentTag = Int()
@@ -151,12 +152,12 @@ class CompositionController: UIViewController, UITextFieldDelegate {
             composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key7) {
-            BtnGroup[7].setTitle(string3, for: .normal)
+            BtnGroup[8].setTitle(string3, for: .normal)
             composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key8) {
 
-            BtnGroup[8].setTitle(string3, for: .normal)
+            BtnGroup[7].setTitle(string3, for: .normal)
             composition.append(string3)
         }
         if let string3 = defaults.string(forKey: defaultsKeys.key9) {
@@ -369,13 +370,19 @@ class CompositionController: UIViewController, UITextFieldDelegate {
                             self.alerteMessage(message: messageError as! String)
                         }
                         
-                        print(self.newapikey)
                         for na in self.nation {
                             if na == self.nationality {
-                                self.callAPIScore(newkey: self.newapikey)
+                                self.isCorrect = true
+                                
+                            }
+                            else {
+                                self.isCorrect = false
                             }
                         }
-                        //self.isPlayer = false
+                        
+                        if self.isCorrect == true {
+                            self.callAPIScore(newkey: self.newapikey)
+                        }
                 }
                 
             } catch let error as NSError {
@@ -390,6 +397,7 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     //******* Ajout du score
     ////
     func callAPIScore(newkey:String) {
+        print("La nouvelle", newkey)
         let defaults = UserDefaults.standard
         let urlToRequest = addressUrlString+scoreUrl
         let url4 = URL(string: urlToRequest)!
