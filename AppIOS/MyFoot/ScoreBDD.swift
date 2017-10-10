@@ -73,7 +73,8 @@ extension ScoreController {
     }
     
     func setupData(_name: [String], _score: [Double]) {
-        clearData()
+        
+       self.clearData()
         
         for i in 0 ... self.names.count - 1 {
             if let context = DataManager.shared.objectContext {
@@ -97,7 +98,8 @@ extension ScoreController {
             }
         }
         
-        //loadData()
+        
+        
         
     }
     
@@ -112,6 +114,7 @@ extension ScoreController {
             do {
                 
                 scores = try(context.fetch(fetchRequest)) as? [Score]
+                print(scores?.count)
                 
             } catch let err {
                 print(err)

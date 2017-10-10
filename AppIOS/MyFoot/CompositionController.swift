@@ -46,7 +46,7 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     var composition = [String]()
     
     var isPlayer = Bool()
-    var isCorrect = Bool()
+    var isCorrect = false
     
     var curentName = String()
     var curentTag = Int()
@@ -67,6 +67,7 @@ class CompositionController: UIViewController, UITextFieldDelegate {
     //let defaults = UserDefaults.standard
     override func viewDidLoad() {
         super.viewDidLoad()
+
         
         if isPlayer == true {
             //Supprime tout
@@ -372,6 +373,8 @@ class CompositionController: UIViewController, UITextFieldDelegate {
                         
                         for na in self.nation {
                             if na == self.nationality {
+                                print(na)
+                                self.callAPIScore(newkey: self.newapikey)
                                 self.isCorrect = true
                                 
                             }
@@ -380,8 +383,9 @@ class CompositionController: UIViewController, UITextFieldDelegate {
                             }
                         }
                         
+                        print(self.isCorrect)
                         if self.isCorrect == true {
-                            self.callAPIScore(newkey: self.newapikey)
+                            //self.callAPIScore(newkey: self.newapikey)
                         }
                 }
                 
@@ -404,7 +408,7 @@ class CompositionController: UIViewController, UITextFieldDelegate {
         let session4 = URLSession.shared
         let request = NSMutableURLRequest(url: url4)
         
-        request.addValue(defaults.string(forKey: defaultsKeys.key11)!, forHTTPHeaderField: "Authorization")
+        request.addValue(newkey, forHTTPHeaderField: "Authorization")
         request.httpMethod = "PUT"
         request.cachePolicy = NSURLRequest.CachePolicy.reloadIgnoringCacheData
         
