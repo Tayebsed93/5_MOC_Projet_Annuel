@@ -296,6 +296,20 @@ class DbHandler {
 
 
 
+     /**
+     * Fetching all user composition
+     * @param String $user_id id of the user
+     */
+    public function getAllClub() {
+        $stmt = $this->conn->prepare("SELECT * FROM club ");
+        $stmt->execute();
+        $composition = $stmt->get_result();
+        $stmt->close();
+        return $composition;
+    }
+
+
+
 /* ------------- `user_composition` table method ------------------ */
 
     /**

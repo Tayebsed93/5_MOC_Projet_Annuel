@@ -386,6 +386,32 @@ $app->post('/club','authenticate', function() use ($app) {
             }            
         });
 
+/**
+ * Listing all club
+ * method GET
+ * url /club         
+ */
+$app->get('/club', function() {
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all club
+            $result = $db->getAllClub();
+            $response["error"] = false;
+            $response["clubs"] = array();
+
+            // looping through result and preparing user array
+            while ($clubs = $result->fetch_assoc()) {
+                $tmp = array();
+                $tmp["id"] = $clubs["id"];
+                $tmp["nom"] = $clubs["nom"];
+                $tmp["logo"] = $clubs["logo"];
+                array_push($response["clubs"], $tmp);
+            }
+
+            echoRespnse(200, $response);
+        });
+
 
 /**
  * Listing all poubelles for date of particual user
