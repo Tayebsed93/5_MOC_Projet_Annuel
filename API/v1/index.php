@@ -355,6 +355,39 @@ $app->post('/composition','authenticate', function() use ($app) {
 
 
 /**
+ * Creating new club in db
+ * method POST
+ * params - name
+ * url - /club
+ */
+$app->post('/club','authenticate', function() use ($app) {
+            // check for required params
+            verifyRequiredParams(array('nom'));
+
+            $response = array();
+            $nom = $app->request->post('nom');
+            $logo = $app->request->post('logo');
+
+            global $user_id;
+            $db = new DbHandler();
+
+            // creating new club
+            $club_id = $db->createClub($user_id, $nom, $logo);
+
+            if ($club_id != NULL) {
+                $response["error"] = false;
+                $response["message"] = "Club created successfully";
+                $response["club_id"] = $club_id;
+                echoRespnse(201, $response);
+            } else {
+                $response["error"] = true;
+                $response["message"] = "Failed to create club. Please try again";
+                echoRespnse(200, $response);
+            }            
+        });
+
+
+/**
  * Listing all poubelles for date of particual user
  * method POST
  * url /poubelles/date         

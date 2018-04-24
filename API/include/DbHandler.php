@@ -214,8 +214,7 @@ class DbHandler {
         return $composition;
     }
 
-
-    /**
+        /**
      * Updating score user
      * @param String $user_id id of the user
      * @param String $score score integer
@@ -262,31 +261,61 @@ class DbHandler {
         }
     }
 
+           /* ------------- `club` table method ------------------ */
+
     /**
-     * Fetching single poubelle
-     * @param String $poubelle_id id of the poubelle
+     * Creating new club
+     * @param String $user_id user id to whom player belongs to
+     * @param String $nom club text
+     * @param String $logo logo blob
      */
-    public function getPoubelle($poubelle_id, $user_id) {
-        $stmt = $this->conn->prepare("SELECT t.id, t.sujet, t.status, t.created_at from poubelle t, user_poubelle ut WHERE t.id = ? AND ut.poubelle_id = t.id AND ut.user_id = ?");
-        $stmt->bind_param("ii", $poubelle_id, $user_id);
-        if ($stmt->execute()) {
-            $res = array();
-            $stmt->bind_result($id, $sujet, $status, $created_at);
-            // TODO
- 
-            $stmt->fetch();
-            $res["id"] = $id;
-            $res["sujet"] = $sujet;
-            $res["status"] = $status;
-            $res["created_at"] = $created_at;
-            $stmt->close();
-            return $res;
+    public function createClub($user_id, $nom, $logo) {
+        $stmt = $this->conn->prepare("INSERT INTO club(nom,logo) VALUES(?,?)");
+        $stmt->bind_param("ss", $nom, $logo);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        
+        if ($result) {
+            // club row created
+            // now assign the club to user
+            $new_club_id = $this->conn->insert_id;
+            $res = $this->createUserClub($user_id, $new_club_id);
+            if ($res) {
+                // club created successfully
+                return $new_club_id;
+            } else {
+                // club failed to create
+                return NULL;
+            }
         } else {
+            // club failed to create
             return NULL;
         }
     }
 
+
+
+/* ------------- `user_composition` table method ------------------ */
+
     /**
+     * Function to assign a composition to user
+     * @param String $user_id id of the user
+     * @param String $composition_id id of the composition
+     */
+    public function createUserComposition($user_id, $composition_id) {
+        $stmt = $this->conn->prepare("INSERT INTO user_composition(user_id, composition_id) values(?, ?)");
+        $stmt->bind_param("ii", $user_id, $composition_id);
+        $result = $stmt->execute();
+
+        if (false === $result) {
+            die('execute() failed: ' . htmlspecialchars($stmt->error));
+        }
+        $stmt->close();
+        return $result;
+    }
+
+        /**
      * Fetching all user composition
      * @param String $user_id id of the user
      */
@@ -300,23 +329,23 @@ class DbHandler {
     }
 
 
-    /**
+        /**
      * Fetching all user composition
      * @param String $user_id id of the user
      */
     public function getResultComposition() {
         $stmt = $this->conn->prepare("SELECT * FROM touslesjoueursnoadmin noadmin WHERE EXISTS(SELECT * FROM touslesjoueursadmin c2 
             WHERE c2.nation = noadmin.nation AND c2.player = noadmin.player)");
-        //$stmt->bind_param("i", $user_id);
+        $stmt->bind_param("i", $user_id);
 
         $stmt->execute();
         $composition = $stmt->get_result();
-        var_dump($composition)
         $stmt->close();
         return $composition;
     }
 
-            /**
+
+                /**
      * Create view composition no admin
      * @param no param
      */
@@ -354,7 +383,8 @@ class DbHandler {
         return $composition;
     }
 
-        /**
+
+            /**
      * Fetching all user composition
      * @param String $user_id id of the user
      */
@@ -369,142 +399,17 @@ class DbHandler {
         return $composition;
     }
 
-        /**
-     * Fetching all user poubelles for date
+
+    /* ------------- `user_club` table method ------------------ */
+
+    /**
+     * Function to assign a club to user
      * @param String $user_id id of the user
+     * @param String $club_id id of the composition
      */
-    public function getAllUserPoubelleDate($user_id, $annee) {
-        $stmt = $this->conn->prepare("SELECT MAX(p.id), p.created_at, p.size, MONTH(p.created_at) AS mois, YEAR(p.created_at) AS annee, COUNT( * ) AS nombre  FROM poubelle p, user_poubelle up WHERE p.id = up.poubelle_id AND up.user_id = ? AND YEAR(p.created_at) = ? GROUP BY annee, mois");
-        $stmt->bind_param("ii", $user_id, $annee);
-         if ($stmt->execute()) {
-            $res = array();
-            $stmt->store_result();
-            $stmt->bind_result($id, $created_at, $size, $mois, $annee, $nombre);
-            // TODO
- 
-            while($stmt->fetch())
-            {           
-                $temp = array();
-                $temp["id"] = $id;
-                $temp["created_at"] = $created_at;
-                $temp["size"] = $size;
-                $temp["mois"] = $mois;
-                $temp["annee"] = $annee;
-                $temp["nombre"] = $nombre;
-                
-                array_push($res, $temp);
-            }
-
-            $stmt->close();
-            return $res;
-        } else {
-            return NULL;
-        }
-    }
-
-
-            /**
-     * Fetching size for the last id
-     * @param String $user_id id of the user
-     */
-    public function getAllUserPoubelleSize($user_id, $annee) {
-        $stmt = $this->conn->prepare("SELECT MAX(p.id), p.created_at, p.size, MONTH(p.created_at) AS mois, YEAR(p.created_at) AS annee, COUNT( * ) AS nombre  FROM poubelle p, user_poubelle up WHERE p.id = up.poubelle_id AND up.user_id = ? AND YEAR(p.created_at) = ? GROUP BY size");
-        $stmt->bind_param("ii", $user_id, $annee);
-         if ($stmt->execute()) {
-            $res = array();
-            $stmt->store_result();
-            $stmt->bind_result($id, $created_at, $size, $mois, $annee, $nombre);
-            // TODO
- 
-            while($stmt->fetch())
-            {           
-                $temp = array();
-                $temp["id"] = $id;
-                $temp["created_at"] = $created_at;
-                $temp["size"] = $size;
-                $temp["mois"] = $mois;
-                $temp["annee"] = $annee;
-                $temp["nombre"] = $nombre;
-                
-                array_push($res, $temp);
-            }
-
-            $stmt->close();
-            return $res;
-        } else {
-            return NULL;
-        }
-    }
-
-
-    /**
-     * Updating all size poubelle in 0
-     * @param String $poubelle_id id of the poubelle
-     * @param String $size size integer
-     */
-    public function updateClearPoubelle() {
-        $stmt = $this->conn->prepare(
-        "UPDATE poubelle set size = 0;");
-        
-
-        //$stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $num_affected_rows = $stmt->affected_rows;
-        $stmt->close();
-        return $num_affected_rows > 0;
-    }
-
-    /**
-     * Updating poubelle
-     * @param String $poubelle_id id of the poubelle
-     * @param String $size size integer
-     */
-    public function updatePoubelle($user_id, $size) {
-        $this->updateClearPoubelle();
-        
-        $stmt = $this->conn->prepare(
-        "UPDATE poubelle p
-        JOIN ( 
-            SELECT * , MAX(poubelle_id) AS maxID
-            FROM user_poubelle up
-            WHERE up.user_id = ?
-            AND MONTH(created_at)=MONTH(now())) AS up 
-        ON p.id = maxID
-        SET size = ?");
-        
-
-        $stmt->bind_param("ii", $user_id, $size);
-        $stmt->execute();
-        $num_affected_rows = $stmt->affected_rows;
-        $stmt->close();
-        return $num_affected_rows > 0;
-    }
-
-    
-
-    /**
-     * Deleting a poubelle
-     * @param String $poubelle_id id of the poubelle to delete
-     */
-    public function deletePoubelle($user_id, $poubelle_id) {
-        $stmt = $this->conn->prepare("DELETE t FROM poubelle t, user_poubelle ut WHERE t.id = ? AND ut.poubelle_id = t.id AND ut.user_id = ?");
-        $stmt->bind_param("ii", $poubelle_id, $user_id);
-        $stmt->execute();
-        $num_affected_rows = $stmt->affected_rows;
-        $stmt->close();
-        return $num_affected_rows > 0;
-    }
-
-    /* ------------- `user_composition` table method ------------------ */
-
-    /**
-     * Function to assign a composition to user
-     * @param String $user_id id of the user
-     * @param String $composition_id id of the composition
-     */
-    public function createUserComposition($user_id, $composition_id) {
-        $stmt = $this->conn->prepare("INSERT INTO user_composition(user_id, composition_id) values(?, ?)");
-        $stmt->bind_param("ii", $user_id, $composition_id);
+    public function createUserClub($user_id, $club_id) {
+        $stmt = $this->conn->prepare("INSERT INTO user_club(user_id, club_id) values(?, ?)");
+        $stmt->bind_param("ii", $user_id, $club_id);
         $result = $stmt->execute();
 
         if (false === $result) {
@@ -514,7 +419,8 @@ class DbHandler {
         return $result;
     }
 
-    /* ------------- `player` table method ------------------ */
+
+        /* ------------- `player` table method ------------------ */
 
     /**
      * ImportCSV in table player
