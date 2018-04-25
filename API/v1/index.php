@@ -67,12 +67,13 @@ $app->post('/register', function() use ($app) {
             $name = $app->request->post('name');
             $email = $app->request->post('email');
             $password = $app->request->post('password');
+            $role = "par defaut";
 
             // validating email address
             validateEmail($email);
 
             $db = new DbHandler();
-            $res = $db->createUser($name, $email, $password);
+            $res = $db->createUser($name, $email, $password, $role);
 
             if ($res == USER_CREATED_SUCCESSFULLY) {
                 $response["error"] = false;
@@ -362,7 +363,7 @@ $app->post('/composition','authenticate', function() use ($app) {
  */
 $app->post('/club', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('nom','logo','name','email','password'));
+            verifyRequiredParams(array('nom','name','email','password'));
 
             $response = array();
 
@@ -370,10 +371,12 @@ $app->post('/club', function() use ($app) {
             $name = $app->request->post('name');
             $email = $app->request->post('email');
             $password = $app->request->post('password');
+            $role = "president";
 
             //club
             $nom = $app->request->post('nom');
             $logo = $app->request->post('logo');
+            $license = $app->request->post('license');
 
             $db = new DbHandler();
 
@@ -381,7 +384,7 @@ $app->post('/club', function() use ($app) {
             //validateEmail($email);
 
             // creating user president
-            $res = $db->createUser($name, $email, $password);
+            $res = $db->createUser($name, $email, $password, $role);
             if ($res == USER_CREATED_SUCCESSFULLY) {
                 $response["error"] = false;
                 $response["message_user"] = "You are successfully registered";
@@ -400,13 +403,21 @@ $app->post('/club', function() use ($app) {
                     $response['createdAt'] = $users['created_at'];
 
                     // creating new club
-                    $club_id = $db->createClub($response['id'], $nom, $logo);
+                    $club_id = $db->createClub($response['id'], $nom, $logo, $license);
                         if ($club_id == CLUB_CREATED_SUCCESSFULLY) {
                             $response["error"] = false;
                             $response["message_club"] = "Club created successfully";
                         } else if ($club_id == CLUB_CREATE_FAILED) {
+                            $delete = $db->deleteUser($response['id']);
                             $response["error"] = true;
                             $response["message_club"] = "Oops! An error occurred while registereing";
+                            $response['id'] = NULL;
+                            $response['name'] = NULL;
+                            $response['email'] = NULL;
+                            $response['apiKey'] = NULL;
+                            $response['role'] = NULL;
+                            $response['createdAt'] = NULL;
+                            $response["message_user"] = "An error occurred. Please try again";
                         } else if ($club_id == CLUB_ALREADY_EXISTED) {
                             $delete = $db->deleteUser($response['id']);
                             $response["error"] = true;

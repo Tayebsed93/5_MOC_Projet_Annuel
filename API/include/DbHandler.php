@@ -25,8 +25,9 @@ class DbHandler {
      * @param String $name User full name
      * @param String $email User login email id
      * @param String $password User login password
+     * @param String $role User role
      */
-    public function createUser($name, $email, $password) {
+    public function createUser($name, $email, $password, $role) {
         require_once 'PassHash.php';
         $response = array();
 
@@ -39,8 +40,8 @@ class DbHandler {
             $api_key = $this->generateApiKey();
 
             // insert query
-            $stmt = $this->conn->prepare("INSERT INTO users(name, email, password_hash, api_key, role) values(?, ?, ?, ?, 0)");
-            $stmt->bind_param("ssss", $name, $email, $password_hash, $api_key);
+            $stmt = $this->conn->prepare("INSERT INTO users(name, email, password_hash, api_key, role) values(?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $name, $email, $password_hash, $api_key, $role);
 
             $result = $stmt->execute();
 
@@ -300,16 +301,17 @@ class DbHandler {
      * @param String $user_id user id to whom player belongs to
      * @param String $nom club text
      * @param String $logo logo blob
+     * @param String $license license blob
      */
-    public function createClub($user_id, $nom, $logo) {
+    public function createClub($user_id, $nom, $logo, $license) {
         $response = array();
 
         // First check if user already existed in db
         if (!$this->isClubExists($nom)) {
 
             // insert query
-            $stmt = $this->conn->prepare("INSERT INTO club(nom,logo) VALUES(?,?)");
-            $stmt->bind_param("ss", $nom, $logo);
+            $stmt = $this->conn->prepare("INSERT INTO club(nom,logo,license) VALUES(?,?,?)");
+            $stmt->bind_param("sss", $nom, $logo, $license);
             $result = $stmt->execute();
             $stmt->close();
             // Check for successful insertion
@@ -335,33 +337,7 @@ class DbHandler {
             return CLUB_ALREADY_EXISTED;
         }
 
-        return $response;
-        /*
-        $stmt = $this->conn->prepare("INSERT INTO club(nom,logo) VALUES(?,?)");
-        $stmt->bind_param("ss", $nom, $logo);
-        $result = $stmt->execute();
-        $stmt->close();
-
-        
-        if ($result) {
-            // club row created
-            // now assign the club to user
-            $new_club_id = $this->conn->insert_id;
-            $res = $this->createUserClub($user_id, $new_club_id);
-            if ($res) {
-                // club created successfully
-                return $new_club_id;
-            } else {
-                // club failed to create
-                return NULL;
-            }
-        } else {
-            // club failed to create
-            return NULL;
-        }
-        */
-
-        
+        return $response;  
     }
 
 
