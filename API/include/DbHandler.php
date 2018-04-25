@@ -62,6 +62,20 @@ class DbHandler {
         return $response;
     }
 
+
+    /**
+     * Delete user
+     * @param String $user_id id of the user
+     */
+    public function deleteUser($user_id) {
+        $stmt = $this->conn->prepare("DELETE FROM users where id=? ");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $num_affected_rows = $stmt->affected_rows;
+        $stmt->close();
+        return $num_affected_rows > 0;
+    }
+
     /**
      * Checking user login
      * @param String $email User login email id
@@ -264,6 +278,23 @@ class DbHandler {
 
            /* ------------- `club` table method ------------------ */
 
+
+    /**
+     * Checking for duplicate club by name
+     * @param String $nom nom to check in db
+     * @return boolean
+     */
+    private function isClubExists($nom) {
+        $stmt = $this->conn->prepare("SELECT id from club WHERE nom = ?");
+        $stmt->bind_param("s", $nom);
+        $stmt->execute();
+        $stmt->store_result();
+        $num_rows = $stmt->num_rows;
+        $stmt->close();
+        return $num_rows > 0;
+    }
+
+
     /**
      * Creating new club
      * @param String $user_id user id to whom player belongs to
@@ -271,6 +302,42 @@ class DbHandler {
      * @param String $logo logo blob
      */
     public function createClub($user_id, $nom, $logo) {
+        $response = array();
+
+        // First check if user already existed in db
+        if (!$this->isClubExists($nom)) {
+
+            // insert query
+            $stmt = $this->conn->prepare("INSERT INTO club(nom,logo) VALUES(?,?)");
+            $stmt->bind_param("ss", $nom, $logo);
+            $result = $stmt->execute();
+            $stmt->close();
+            // Check for successful insertion
+            if ($result) {
+                // Insert user club
+                $new_club_id = $this->conn->insert_id;
+                $res = $this->createUserClub($user_id, $new_club_id);
+                    if ($res) {
+                        // club created successfully
+                        return CLUB_CREATED_SUCCESSFULLY;
+                    } else {
+                    // club failed to create
+                    return NULL;
+                }
+                
+                
+            } else {
+                // Failed to create user
+                return CLUB_CREATE_FAILED;
+            }
+        } else {
+            // User with same nom already existed in the db
+            return CLUB_ALREADY_EXISTED;
+        }
+
+        return $response;
+
+        /*
         $stmt = $this->conn->prepare("INSERT INTO club(nom,logo) VALUES(?,?)");
         $stmt->bind_param("ss", $nom, $logo);
         $result = $stmt->execute();
@@ -293,6 +360,8 @@ class DbHandler {
             // club failed to create
             return NULL;
         }
+        */
+        
     }
 
 

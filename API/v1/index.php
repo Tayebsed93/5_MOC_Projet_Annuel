@@ -375,8 +375,10 @@ $app->post('/club', function() use ($app) {
             $nom = $app->request->post('nom');
             $logo = $app->request->post('logo');
 
-            //global $user_id;
             $db = new DbHandler();
+
+            // validating email address
+            //validateEmail($email);
 
             // creating user president
             $res = $db->createUser($name, $email, $password);
@@ -399,16 +401,25 @@ $app->post('/club', function() use ($app) {
 
                     // creating new club
                     $club_id = $db->createClub($response['id'], $nom, $logo);
-
-                    if ($club_id != NULL) {
-                        $response["error"] = false;
-                        $response["message_club"] = "Club created successfully";
-                        $response["club_id"] = $club_id;
-                    } else {
-                        $response["error"] = true;
-                        $response["message_club"] = "Failed to create club. Please try again";
-                    }  
-
+                        if ($club_id == CLUB_CREATED_SUCCESSFULLY) {
+                            $response["error"] = false;
+                            $response["message_club"] = "Club created successfully";
+                        } else if ($club_id == CLUB_CREATE_FAILED) {
+                            $response["error"] = true;
+                            $response["message_club"] = "Oops! An error occurred while registereing";
+                        } else if ($club_id == CLUB_ALREADY_EXISTED) {
+                            $delete = $db->deleteUser($response['id']);
+                            $response["error"] = true;
+                            $response["message_club"] = "Sorry, this club already existed";
+                            $response['id'] = NULL;
+                            $response['name'] = NULL;
+                            $response['email'] = NULL;
+                            $response['apiKey'] = NULL;
+                            $response['role'] = NULL;
+                            $response['createdAt'] = NULL;
+                            $response["message_user"] = "An error occurred. Please try again";
+                        }  
+                
                 } else {
                     // unknown error occurred
                     $response['error'] = true;
@@ -419,7 +430,7 @@ $app->post('/club', function() use ($app) {
                 $response['error'] = true;
                 $response['message_check_user'] = 'Login failed. Incorrect credentials';
             }
-            
+
             } else if ($res == USER_CREATE_FAILED) {
                 $response["error"] = true;
                 $response["message_user"] = "Oops! An error occurred while registereing";
