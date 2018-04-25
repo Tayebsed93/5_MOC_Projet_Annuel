@@ -123,13 +123,14 @@ class DbHandler {
      * @param String $email User email id
      */
     public function getUserByEmail($email) {
-        $stmt = $this->conn->prepare("SELECT name, email, api_key, role, created_at FROM users WHERE email = ?");
+        $stmt = $this->conn->prepare("SELECT id, name, email, api_key, role, created_at FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         if ($stmt->execute()) {
             // $user = $stmt->get_result()->fetch_assoc();
-            $stmt->bind_result($name, $email, $api_key, $role, $created_at);
+            $stmt->bind_result($id, $name, $email, $api_key, $role, $created_at);
             $stmt->fetch();
             $user = array();
+            $user["id"] = $id;
             $user["name"] = $name;
             $user["email"] = $email;
             $user["api_key"] = $api_key;

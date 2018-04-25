@@ -360,30 +360,75 @@ $app->post('/composition','authenticate', function() use ($app) {
  * params - name
  * url - /club
  */
-$app->post('/club','authenticate', function() use ($app) {
+$app->post('/club', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('nom'));
+            verifyRequiredParams(array('nom','logo','name','email','password'));
 
             $response = array();
+
+            //user
+            $name = $app->request->post('name');
+            $email = $app->request->post('email');
+            $password = $app->request->post('password');
+
+            //club
             $nom = $app->request->post('nom');
             $logo = $app->request->post('logo');
 
-            global $user_id;
+            //global $user_id;
             $db = new DbHandler();
 
-            // creating new club
-            $club_id = $db->createClub($user_id, $nom, $logo);
-
-            if ($club_id != NULL) {
+            // creating user president
+            $res = $db->createUser($name, $email, $password);
+            if ($res == USER_CREATED_SUCCESSFULLY) {
                 $response["error"] = false;
-                $response["message"] = "Club created successfully";
-                $response["club_id"] = $club_id;
-                echoRespnse(201, $response);
+                $response["message_user"] = "You are successfully registered";
+
+                if ($db->checkLogin($email, $password)) {
+                // get the user by email
+                $users = $db->getUserByEmail($email);
+
+                if ($users != NULL) {
+                    $response["error"] = false;
+                    $response['id'] = $users['id'];
+                    $response['name'] = $users['name'];
+                    $response['email'] = $users['email'];
+                    $response['apiKey'] = $users['api_key'];
+                    $response['role'] = $users['role'];
+                    $response['createdAt'] = $users['created_at'];
+
+                    // creating new club
+                    $club_id = $db->createClub($response['id'], $nom, $logo);
+
+                    if ($club_id != NULL) {
+                        $response["error"] = false;
+                        $response["message_club"] = "Club created successfully";
+                        $response["club_id"] = $club_id;
+                    } else {
+                        $response["error"] = true;
+                        $response["message_club"] = "Failed to create club. Please try again";
+                    }  
+
+                } else {
+                    // unknown error occurred
+                    $response['error'] = true;
+                    $response['message_check_user'] = "An error occurred. Please try again";
+                }
             } else {
+                // user credentials are wrong
+                $response['error'] = true;
+                $response['message_check_user'] = 'Login failed. Incorrect credentials';
+            }
+            
+            } else if ($res == USER_CREATE_FAILED) {
                 $response["error"] = true;
-                $response["message"] = "Failed to create club. Please try again";
-                echoRespnse(200, $response);
-            }            
+                $response["message_user"] = "Oops! An error occurred while registereing";
+            } else if ($res == USER_ALREADY_EXISTED) {
+                $response["error"] = true;
+                $response["message_user"] = "Sorry, this email already existed";
+            }
+
+            echoRespnse(200, $response);        
         });
 
 /**
@@ -406,7 +451,7 @@ $app->get('/club', function() {
                 $tmp["id"] = $clubs["id"];
                 $tmp["nom"] = $clubs["nom"];
                 $tmp["logo"] = $clubs["logo"];
-                array_push($response["clubs"], $tmp);
+                array_push($response["users"], $tmp);
             }
 
             echoRespnse(200, $response);
