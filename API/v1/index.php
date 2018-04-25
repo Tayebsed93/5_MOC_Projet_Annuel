@@ -462,7 +462,7 @@ $app->get('/club', function() {
                 $tmp["id"] = $clubs["id"];
                 $tmp["nom"] = $clubs["nom"];
                 $tmp["logo"] = $clubs["logo"];
-                array_push($response["users"], $tmp);
+                array_push($response["clubs"], $tmp);
             }
 
             echoRespnse(200, $response);

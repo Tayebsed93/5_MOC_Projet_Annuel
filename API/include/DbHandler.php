@@ -336,7 +336,6 @@ class DbHandler {
         }
 
         return $response;
-
         /*
         $stmt = $this->conn->prepare("INSERT INTO club(nom,logo) VALUES(?,?)");
         $stmt->bind_param("ss", $nom, $logo);
@@ -361,6 +360,7 @@ class DbHandler {
             return NULL;
         }
         */
+
         
     }
 
