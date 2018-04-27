@@ -5,6 +5,7 @@ require_once '../include/PassHash.php';
 require '.././libs/Slim/Slim.php';
 
 \Slim\Slim::registerAutoloader();
+use Slim\Http\UploadedFile;
 
 $app = new \Slim\Slim();
 
@@ -375,8 +376,108 @@ $app->post('/club', function() use ($app) {
 
             //club
             $nom = $app->request->post('nom');
-            $logo = $app->request->post('logo');
-            $license = $app->request->post('license');
+            if (!isset($_FILES['logo'])) {
+                $response["error"] = true;
+                $response["message"] = 'Required field(s) ' . 'logo' . ' is missing or empty';
+                echoRespnse(400, $response);
+                return;
+            } else {
+                $logo = $_FILES['logo'];
+                $logotype = $_FILES['logo']['type'];
+                $logoname = $_FILES['logo']['name'];
+            }
+
+            if (!isset($_FILES['license'])) {
+                $response["error"] = true;
+                $response["message"] = 'Required field(s) ' . 'license' . ' is missing or empty';
+                echoRespnse(400, $response);
+                return;
+            } else {
+                $license = $_FILES['license'];
+            }
+
+            //////
+
+/*
+       $target_dir = "uploads/";
+$target_file = $target_dir . basename($_FILES["logo"]["name"]);
+$uploadOk = 1;
+$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+// Check if image file is a actual image or fake image
+    $check = getimagesize($_FILES["logo"]["tmp_name"]);
+    if($check !== false) {
+        echo "File is an image - " . $check["mime"] . ".";
+        echo "The file ". basename( $_FILES["logo"]["name"]). " has been uploaded.";
+        $uploadOk = 1;
+    } else {
+        echo "File is not an image.";
+        $uploadOk = 0;
+    }
+
+var_dump($target_file);
+    // Check if file already exists
+if (file_exists($target_file)) {
+    echo "Sorry, file already exists.";
+    $uploadOk = 0;
+}
+*/
+
+
+        //$content_dir = '/Applications/MAMP/tmp/';
+        //$content_dir = '/FootAPI/Pictures/';
+        $content_dirlogo = '/Applications/MAMP/htdocs/FootAPI/ClubPictures/';
+        $content_dirlicense = '/Applications/MAMP/htdocs/FootAPI/LicensePictures/';
+        $tmp_logo = $_FILES['logo']['tmp_name'];
+        $tmp_license = $_FILES['license']['tmp_name'];
+        $taille_max = 250000;
+        /*
+        $ret = is_uploaded_file($tmp_logo);
+
+                if (!$ret) {
+            echo "Problème de transfert";
+            return false;
+        } else {
+            // Le fichier a bien été reçu
+            $img_taille = $_FILES['logo']['size'];
+            
+            if ($img_taille > $taille_max) {
+                echo "Trop gros !";
+                return false;
+            }
+
+            $img_nom  = $_FILES['logo']['name'];
+        }
+        */
+
+        if (!is_uploaded_file($tmp_logo)) {
+            $response["message_club"] = "Pas d'image";
+            exit("The file is lost");
+        }
+
+        if (!is_uploaded_file($tmp_license)) {
+            $response["message_club"] = "Pas d'image";
+            exit("The file is lost");
+        }
+
+        //$extensions_valides = array('csv', 'txt');
+        //$extension_upload = substr(strrchr($_FILES['logo']['name'], '.'), 1);
+        
+            // on copie le fichier dans le dossier de destination
+            $logo_file = $_FILES['logo']['name'];
+            $license_file = $_FILES['license']['name'];
+            if (!move_uploaded_file($tmp_logo, $content_dirlogo . $logo_file)) {
+                exit("Impossible to copy the file logo to $content_dirlogo");
+            }
+            if (!move_uploaded_file($tmp_license, $content_dirlicense . $license_file)) {
+                exit("Impossible to copy the file license to $content_dirlicense");
+            }
+            $filelogo = "$content_dirlogo" . "$logo_file";
+            $filelicense = "$content_dirlicense" . "$license_file";
+            var_dump($filelogo);
+        
+
+
+            
 
             $db = new DbHandler();
 
@@ -403,7 +504,7 @@ $app->post('/club', function() use ($app) {
                     $response['createdAt'] = $users['created_at'];
 
                     // creating new club
-                    $club_id = $db->createClub($response['id'], $nom, $logo, $license);
+                    $club_id = $db->createClub($response['id'], $nom, $filelogo, $_FILES['license']['name']);
                         if ($club_id == CLUB_CREATED_SUCCESSFULLY) {
                             $response["error"] = false;
                             $response["message_club"] = "Club created successfully";
@@ -453,6 +554,8 @@ $app->post('/club', function() use ($app) {
             echoRespnse(200, $response);        
         });
 
+
+
 /**
  * Listing all club
  * method GET
@@ -473,6 +576,7 @@ $app->get('/club', function() {
                 $tmp["id"] = $clubs["id"];
                 $tmp["nom"] = $clubs["nom"];
                 $tmp["logo"] = $clubs["logo"];
+                $tmp["license"] = $clubs["license"];
                 array_push($response["clubs"], $tmp);
             }
 
@@ -638,6 +742,8 @@ function verifyRequiredParams($required_fields) {
         $app->stop();
     }
 }
+
+
 
 /**
  * Validating email address
