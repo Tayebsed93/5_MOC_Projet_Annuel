@@ -347,11 +347,36 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllClub() {
+        /*
         $stmt = $this->conn->prepare("SELECT * FROM club ");
         $stmt->execute();
         $composition = $stmt->get_result();
         $stmt->close();
         return $composition;
+        */
+
+        $stmt = $this->conn->prepare("SELECT * FROM club ");
+         if ($stmt->execute()) {
+            $res = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $nom, $logo, $license);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["nom"] = $nom;
+                $temp["logo"] = $logo;
+                $temp["license"] = $license;
+                
+                array_push($res, $temp);
+            }
+
+            $stmt->close();
+            return $res;
+        } else {
+            return NULL;
+        }
     }
 
 

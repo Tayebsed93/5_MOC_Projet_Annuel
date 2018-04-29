@@ -376,7 +376,8 @@ $app->post('/club', function() use ($app) {
 
             //club
             $nom = $app->request->post('nom');
-            if (!isset($_FILES['logo'])) {
+            if (!isset($_FILES["logo"])) {
+
                 $response["error"] = true;
                 $response["message"] = 'Required field(s) ' . 'logo' . ' is missing or empty';
                 echoRespnse(400, $response);
@@ -384,6 +385,7 @@ $app->post('/club', function() use ($app) {
             } else {
                 $logo = $_FILES['logo'];
                 $logotype = $_FILES['logo']['type'];
+                var_dump($logotype);
                 $logoname = $_FILES['logo']['name'];
             }
 
@@ -396,37 +398,14 @@ $app->post('/club', function() use ($app) {
                 $license = $_FILES['license'];
             }
 
-            //////
+         
 
-/*
-       $target_dir = "uploads/";
-$target_file = $target_dir . basename($_FILES["logo"]["name"]);
-$uploadOk = 1;
-$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-// Check if image file is a actual image or fake image
-    $check = getimagesize($_FILES["logo"]["tmp_name"]);
-    if($check !== false) {
-        echo "File is an image - " . $check["mime"] . ".";
-        echo "The file ". basename( $_FILES["logo"]["name"]). " has been uploaded.";
-        $uploadOk = 1;
-    } else {
-        echo "File is not an image.";
-        $uploadOk = 0;
-    }
+        $racine = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
+        $content_httplogo = $racine . 'FootAPI/API/v1/ClubPictures/';
+        $content_httplicense = $racine . 'FootAPI/API/v1/LicensePictures/';
 
-var_dump($target_file);
-    // Check if file already exists
-if (file_exists($target_file)) {
-    echo "Sorry, file already exists.";
-    $uploadOk = 0;
-}
-*/
-
-
-        //$content_dir = '/Applications/MAMP/tmp/';
-        //$content_dir = '/FootAPI/Pictures/';
-        $content_dirlogo = '/Applications/MAMP/htdocs/FootAPI/ClubPictures/';
-        $content_dirlicense = '/Applications/MAMP/htdocs/FootAPI/LicensePictures/';
+        $content_dirlogo = __DIR__ . '/ClubPictures/';
+        $content_dirlicense = __DIR__ . '/LicensePictures/';
         $tmp_logo = $_FILES['logo']['tmp_name'];
         $tmp_license = $_FILES['license']['tmp_name'];
         $taille_max = 250000;
@@ -471,13 +450,9 @@ if (file_exists($target_file)) {
             if (!move_uploaded_file($tmp_license, $content_dirlicense . $license_file)) {
                 exit("Impossible to copy the file license to $content_dirlicense");
             }
-            $filelogo = "$content_dirlogo" . "$logo_file";
-            $filelicense = "$content_dirlicense" . "$license_file";
-            var_dump($filelogo);
+            $filelogo = "$content_httplogo" . "$logo_file";
+            $filelicense = "$content_httplicense" . "$license_file";
         
-
-
-            
 
             $db = new DbHandler();
 
@@ -504,7 +479,7 @@ if (file_exists($target_file)) {
                     $response['createdAt'] = $users['created_at'];
 
                     // creating new club
-                    $club_id = $db->createClub($response['id'], $nom, $filelogo, $_FILES['license']['name']);
+                    $club_id = $db->createClub($response['id'], $nom, $filelogo, $filelicense);
                         if ($club_id == CLUB_CREATED_SUCCESSFULLY) {
                             $response["error"] = false;
                             $response["message_club"] = "Club created successfully";
@@ -562,6 +537,7 @@ if (file_exists($target_file)) {
  * url /club         
  */
 $app->get('/club', function() {
+    /*
             $response = array();
             $db = new DbHandler();
 
@@ -581,6 +557,32 @@ $app->get('/club', function() {
             }
 
             echoRespnse(200, $response);
+        });
+
+*/
+
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user poubelles
+            $result = $db->getAllClub();
+
+            $response["error"] = false;
+            $response["clubs"] = array();
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+
+            //array_push($response["clubs"], $result);
+            array_push($response, $result);
+            echoRespnse(200, $response);
+        }
+
         });
 
 
