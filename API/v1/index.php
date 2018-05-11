@@ -4,6 +4,11 @@ require_once '../include/DbHandler.php';
 require_once '../include/PassHash.php';
 require '.././libs/Slim/Slim.php';
 
+define('KB', 1024);
+define('MB', 1048576);
+define('GB', 1073741824);
+define('TB', 1099511627776);
+
 \Slim\Slim::registerAutoloader();
 use Slim\Http\UploadedFile;
 
@@ -143,7 +148,8 @@ $app->post('/login', function() use ($app) {
  * method GET
  * url /user         
  */
-$app->get('/user', 'authenticate', function() {
+$app->get('/user', function() {
+    /*
             $response = array();
             $db = new DbHandler();
 
@@ -163,6 +169,33 @@ $app->get('/user', 'authenticate', function() {
             }
 
             echoRespnse(200, $response);
+        });
+        */
+
+                    $response = array();
+            $db = new DbHandler();
+
+            // fetching all user poubelles
+            $result = $db->getAllUserScore();
+
+            $response["error"] = false;
+            $response["scores"] = array();
+
+
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+
+            //array_push($response["clubs"], $result);
+            array_push($response, $result);
+            echoRespnse(200, $response);
+        }
+
         });
 
 
@@ -376,7 +409,7 @@ $app->post('/club', function() use ($app) {
 
             //club
             $nom = $app->request->post('nom');
-            if (!isset($_FILES["logo"])) {
+            if (!isset($_FILES['logo']) OR filesize($_FILES['logo']['tmp_name']) == 0 ) {
 
                 $response["error"] = true;
                 $response["message"] = 'Required field(s) ' . 'logo' . ' is missing or empty';
@@ -385,11 +418,10 @@ $app->post('/club', function() use ($app) {
             } else {
                 $logo = $_FILES['logo'];
                 $logotype = $_FILES['logo']['type'];
-                var_dump($logotype);
                 $logoname = $_FILES['logo']['name'];
             }
 
-            if (!isset($_FILES['license'])) {
+            if (!isset($_FILES['license']) OR filesize($_FILES['license']['tmp_name']) == 0) {
                 $response["error"] = true;
                 $response["message"] = 'Required field(s) ' . 'license' . ' is missing or empty';
                 echoRespnse(400, $response);

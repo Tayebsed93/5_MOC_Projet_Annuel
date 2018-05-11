@@ -223,11 +223,36 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllUserScore() {
+        /*
         $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users ORDER BY score DESC");
         $stmt->execute();
         $composition = $stmt->get_result();
         $stmt->close();
         return $composition;
+        */
+
+         $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users ORDER BY score DESC");
+         if ($stmt->execute()) {
+            $res = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $name, $email, $score);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["name"] = $name;
+                $temp["email"] = $email;
+                $temp["score"] = $score;
+                
+                array_push($res, $temp);
+            }
+
+            $stmt->close();
+            return $res;
+        } else {
+            return NULL;
+        }
     }
 
         /**
