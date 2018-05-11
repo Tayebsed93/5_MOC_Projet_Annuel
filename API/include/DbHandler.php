@@ -231,11 +231,11 @@ class DbHandler {
         return $composition;
         */
 
-         $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users ORDER BY score DESC");
+         $stmt = $this->conn->prepare("SELECT id,name,email,score,picture FROM users ORDER BY score DESC");
          if ($stmt->execute()) {
             $res = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $name, $email, $score);
+            $stmt->bind_result($id, $name, $email, $score, $picture);
             // TODO
             while($stmt->fetch())
             {           
@@ -244,6 +244,7 @@ class DbHandler {
                 $temp["name"] = $name;
                 $temp["email"] = $email;
                 $temp["score"] = $score;
+                $temp["picture"] = $picture;
                 
                 array_push($res, $temp);
             }
