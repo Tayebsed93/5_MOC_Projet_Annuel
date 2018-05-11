@@ -65,7 +65,7 @@ function authenticate(\Slim\Route $route) {
  */
 $app->post('/register', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('name', 'email', 'password'));
+            verifyRequiredParams(array('name', 'email', 'password', 'role'));
 
             $response = array();
 
@@ -73,7 +73,7 @@ $app->post('/register', function() use ($app) {
             $name = $app->request->post('name');
             $email = $app->request->post('email');
             $password = $app->request->post('password');
-            $role = "par defaut";
+            $role = $app->request->post('role');
 
             // validating email address
             validateEmail($email);
@@ -397,7 +397,7 @@ $app->post('/composition','authenticate', function() use ($app) {
  */
 $app->post('/club', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('nom','name','email','password'));
+            verifyRequiredParams(array('nom','name','email','password','role'));
 
             $response = array();
 
@@ -405,7 +405,7 @@ $app->post('/club', function() use ($app) {
             $name = $app->request->post('name');
             $email = $app->request->post('email');
             $password = $app->request->post('password');
-            $role = "president";
+            $role = $app->request->post('role');
 
             //club
             $nom = $app->request->post('nom');
