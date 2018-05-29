@@ -32,6 +32,7 @@ class DbHandler {
         require_once 'PassHash.php';
         $response = array();
 
+        var_dump("expression");
         // First check if user already existed in db
         if (!$this->isUserExists($email)) {
             // Generating password hash
@@ -432,12 +433,37 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllUserComposition($user_id) {
+        /*
         $stmt = $this->conn->prepare("SELECT c.* FROM composition c, user_composition uc WHERE c.id = uc.composition_id AND uc.user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $composition = $stmt->get_result();
         $stmt->close();
         return $composition;
+        */
+
+         $stmt = $this->conn->prepare("SELECT c.* FROM composition c, user_composition uc WHERE c.id = uc.composition_id AND uc.user_id = '$user_id'");
+         if ($stmt->execute()) {
+            $res = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $nation, $player, $createdAt);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["nation"] = $nation;
+                $temp["player"] = $player;
+                $temp["createdAt"] = $createdAt;
+                
+                array_push($res, $temp);
+            }
+
+            $stmt->close();
+            return $res;
+        } else {
+            return NULL;
+        }
     }
 
 
@@ -446,6 +472,7 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getResultComposition() {
+        /*
         $stmt = $this->conn->prepare("SELECT * FROM touslesjoueursnoadmin noadmin WHERE EXISTS(SELECT * FROM touslesjoueursadmin c2 
             WHERE c2.nation = noadmin.nation AND c2.player = noadmin.player)");
         $stmt->bind_param("i", $user_id);
@@ -454,6 +481,31 @@ class DbHandler {
         $composition = $stmt->get_result();
         $stmt->close();
         return $composition;
+        */
+
+        $stmt = $this->conn->prepare("SELECT id, nation, player, created_at FROM touslesjoueursnoadmin noadmin WHERE EXISTS(SELECT * FROM touslesjoueursadmin c2 
+            WHERE c2.nation = noadmin.nation AND c2.player = noadmin.player)");
+         if ($stmt->execute()) {
+            $res = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $nation, $player, $created_at);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["nation"] = $nation;
+                $temp["player"] = $player;
+                $temp["created_at"] = $created_at;
+                
+                array_push($res, $temp);
+            }
+
+            $stmt->close();
+            return $res;
+        } else {
+            return NULL;
+        }
     }
 
 
@@ -467,7 +519,7 @@ class DbHandler {
         FROM composition c, user_composition uc, users u
         WHERE c.id = uc.composition_id
         AND u.id =  uc.user_id
-        AND uc.user_id != 1");
+        AND uc.user_id != 193");
         //$stmt->bind_param("i", $user_id);
   
         //$stmt->bind_param("s", $nationality);
@@ -485,7 +537,7 @@ class DbHandler {
         $stmt = $this->conn->prepare("CREATE OR REPLACE VIEW touslesjoueursadmin AS
         SELECT c.* 
         FROM composition c, user_composition uc 
-        WHERE c.id = uc.composition_id AND uc.user_id = 1");
+        WHERE c.id = uc.composition_id AND uc.user_id = 193");
         //$stmt->bind_param("i", $user_id);
   
         //$stmt->bind_param("s", $nationality);
@@ -496,19 +548,30 @@ class DbHandler {
     }
 
 
-            /**
+    /**
      * Fetching all user composition
      * @param String $user_id id of the user
      */
     public function getAllPlayer($nationality) {
-        $stmt = $this->conn->prepare("SELECT * FROM player WHERE Rating > 78 AND Nationality = ?");
-        //$stmt->bind_param("i", $user_id);
-  
-        $stmt->bind_param("s", $nationality);
-        $stmt->execute();
-        $composition = $stmt->get_result();
-        $stmt->close();
-        return $composition;
+        $stmt = $this->conn->prepare("SELECT id, Name FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
+
+         if ($stmt->execute()) {
+            
+            $res = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $Name);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["Name"] = $Name;
+                array_push($res, $temp);
+            }
+
+            $stmt->close();
+            return $res;
+        } else { return NULL; }
     }
 
 

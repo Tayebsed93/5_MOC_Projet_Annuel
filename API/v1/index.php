@@ -246,19 +246,23 @@ $app->get('/composition', 'authenticate', function() {
             $result = $db->getAllUserComposition($user_id);
 
             $response["error"] = false;
-            $response["composition"] = array();
+            $response["compositions"] = array();
 
-            // looping through result and preparing composition array
-            while ($composition = $result->fetch_assoc()) {
-                $tmp = array();
-                $tmp["id"] = $composition["id"];
-                $tmp["nation"] = $composition["nation"];
-                $tmp["player"] = $composition["player"];
-                $tmp["createdAt"] = $composition["created_at"];
-                array_push($response["composition"], $tmp);
-            }
 
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+
+            //array_push($response["clubs"], $result);
+            array_push($response, $result);
             echoRespnse(200, $response);
+        }
+
         });
 
 
@@ -268,6 +272,7 @@ $app->get('/composition', 'authenticate', function() {
  * url /composition         
  */
 $app->get('/composition/result', 'authenticate', function() {
+    /*
             $response = array();
             $db = new DbHandler();
 
@@ -289,6 +294,33 @@ $app->get('/composition/result', 'authenticate', function() {
 
             echoRespnse(200, $response);
         });
+        */
+
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user composition
+            $result = $db->getResultComposition();
+
+            $response["error"] = false;
+            $response["compositions"] = array();
+
+
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+
+            //array_push($response["clubs"], $result);
+            array_push($response, $result);
+            echoRespnse(200, $response);
+        }
+
+        });
 
 
 /**
@@ -297,10 +329,11 @@ $app->get('/composition/result', 'authenticate', function() {
  * url /player         
  */
 $app->post('/player', 'authenticate', function() use ($app) {
-            verifyRequiredParams(array('nationality'));
 
+            // check for required params
+            verifyRequiredParams(array('nationality'));
             $nationality = $app->request()->post('nationality');
-            global $user_id;
+            //global $user_id;
             $response = array();
             $db = new DbHandler();
 
@@ -308,22 +341,21 @@ $app->post('/player', 'authenticate', function() use ($app) {
             $result = $db->getAllPlayer($nationality);
 
             $response["error"] = false;
-            $response["player"] = array();
+            $response["players"] = array();
 
-            // looping through result and preparing player array
-            while ($player = $result->fetch_assoc()) {
-                $tmp = array();
-                $tmp["id"] = $player["id"];
-                $tmp["Name"] = $player["Name"];
-                $tmp["Nationality"] = $player["Nationality"];
-                $tmp["Club"] = $player["Club"];
-                $tmp["Rating"] = $player["Rating"];
-                $tmp["Age"] = $player["Age"];
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
 
-                array_push($response["player"], $tmp);
-            }
+                echoRespnse(404, $response); // echo the response of 404?
 
+            } else {
+
+            //array_push($response["clubs"], $result);
+            array_push($response, $result);
             echoRespnse(200, $response);
+        }
+
         });
 
 /**
@@ -407,6 +439,7 @@ $app->post('/club', function() use ($app) {
             $email = $app->request->post('email');
             $password = $app->request->post('password');
             $role = $app->request->post('role');
+            $picture = NULL;
 
             //club
             $nom = $app->request->post('nom');
@@ -442,24 +475,7 @@ $app->post('/club', function() use ($app) {
         $tmp_logo = $_FILES['logo']['tmp_name'];
         $tmp_license = $_FILES['license']['tmp_name'];
         $taille_max = 250000;
-        /*
-        $ret = is_uploaded_file($tmp_logo);
 
-                if (!$ret) {
-            echo "Problème de transfert";
-            return false;
-        } else {
-            // Le fichier a bien été reçu
-            $img_taille = $_FILES['logo']['size'];
-            
-            if ($img_taille > $taille_max) {
-                echo "Trop gros !";
-                return false;
-            }
-
-            $img_nom  = $_FILES['logo']['name'];
-        }
-        */
 
         if (!is_uploaded_file($tmp_logo)) {
             $response["message_club"] = "Pas d'image";
@@ -471,8 +487,6 @@ $app->post('/club', function() use ($app) {
             exit("The file is lost");
         }
 
-        //$extensions_valides = array('csv', 'txt');
-        //$extension_upload = substr(strrchr($_FILES['logo']['name'], '.'), 1);
         
             // on copie le fichier dans le dossier de destination
             $logo_file = $_FILES['logo']['name'];
@@ -493,7 +507,7 @@ $app->post('/club', function() use ($app) {
             //validateEmail($email);
 
             // creating user president
-            $res = $db->createUser($name, $email, $password, $role);
+            $res = $db->createUser($name, $email, $password, $role, $picture);
             if ($res == USER_CREATED_SUCCESSFULLY) {
                 $response["error"] = false;
                 $response["message_user"] = "You are successfully registered";
