@@ -553,19 +553,20 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllPlayer($nationality) {
-        $stmt = $this->conn->prepare("SELECT id, Name FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
+        $stmt = $this->conn->prepare("SELECT id, Name, Age FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
 
          if ($stmt->execute()) {
             
             $res = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $Name);
+            $stmt->bind_result($id, $Name, $Age);
             // TODO
             while($stmt->fetch())
             {           
                 $temp = array();
                 $temp["id"] = $id;
                 $temp["Name"] = $Name;
+                $temp["Age"] = $Age;
                 array_push($res, $temp);
             }
 
