@@ -330,10 +330,11 @@ $app->get('/composition/result', 'authenticate', function() {
  */
 $app->post('/player', 'authenticate', function() use ($app) {
 
+
             // check for required params
             verifyRequiredParams(array('nationality'));
             $nationality = $app->request()->post('nationality');
-            //global $user_id;
+
             $response = array();
             $db = new DbHandler();
 
@@ -350,13 +351,10 @@ $app->post('/player', 'authenticate', function() use ($app) {
                 echoRespnse(404, $response); // echo the response of 404?
 
             } else {
-
-            //array_push($response["clubs"], $result);
-            array_push($response, $result);
-            echoRespnse(200, $response);
+                echoRespnse(200, $result);
         }
 
-        });
+    });
 
 /**
  * Listing single poubelle of particual user
@@ -465,7 +463,6 @@ $app->post('/club', function() use ($app) {
             }
 
          
-
         $racine = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
         $content_httplogo = $racine . 'FootAPI/API/v1/ClubPictures/';
         $content_httplicense = $racine . 'FootAPI/API/v1/LicensePictures/';
@@ -624,13 +621,10 @@ $app->get('/club', function() {
                 echoRespnse(404, $response); // echo the response of 404?
 
             } else {
-
-            //array_push($response["clubs"], $result);
-            array_push($response, $result);
-            echoRespnse(200, $response);
+                echoRespnse(200, $result);
         }
 
-        });
+    });
 
 
 /**

@@ -385,7 +385,7 @@ class DbHandler {
 
         $stmt = $this->conn->prepare("SELECT * FROM club ");
          if ($stmt->execute()) {
-            $res = array();
+            $res["clubs"] = array();
             $stmt->store_result();
             $stmt->bind_result($id, $nom, $logo, $license);
             // TODO
@@ -396,11 +396,14 @@ class DbHandler {
                 $temp["nom"] = $nom;
                 $temp["logo"] = $logo;
                 $temp["license"] = $license;
-                
-                array_push($res, $temp);
+
+                array_push($res["clubs"], $temp);
             }
 
+
+            
             $stmt->close();
+
             return $res;
         } else {
             return NULL;
@@ -553,11 +556,12 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllPlayer($nationality) {
-        $stmt = $this->conn->prepare("SELECT id, Name, Age FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
+    
 
+
+          $stmt = $this->conn->prepare("SELECT id, Name, Age FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
          if ($stmt->execute()) {
-            
-            $res = array();
+            $res["players"] = array();
             $stmt->store_result();
             $stmt->bind_result($id, $Name, $Age);
             // TODO
@@ -567,12 +571,18 @@ class DbHandler {
                 $temp["id"] = $id;
                 $temp["Name"] = $Name;
                 $temp["Age"] = $Age;
-                array_push($res, $temp);
+
+                array_push($res["players"], $temp);
             }
 
             $stmt->close();
+
             return $res;
-        } else { return NULL; }
+        } else {
+            return NULL;
+        }
+
+
     }
 
 
