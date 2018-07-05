@@ -150,39 +150,15 @@ $app->post('/login', function() use ($app) {
  * url /user         
  */
 $app->get('/user', function() {
-    /*
+
             $response = array();
             $db = new DbHandler();
 
-            // fetching all user user
-            $result = $db->getAllUserScore();
-            $response["error"] = false;
-            $response["users"] = array();
-
-            // looping through result and preparing user array
-            while ($users = $result->fetch_assoc()) {
-                $tmp = array();
-                $tmp["id"] = $users["id"];
-                $tmp["name"] = $users["name"];
-                $tmp["email"] = $users["email"];
-                $tmp["score"] = $users["score"];
-                array_push($response["users"], $tmp);
-            }
-
-            echoRespnse(200, $response);
-        });
-        */
-
-                    $response = array();
-            $db = new DbHandler();
-
-            // fetching all user poubelles
+            // fetching all user player
             $result = $db->getAllUserScore();
 
             $response["error"] = false;
             $response["scores"] = array();
-
-
 
             // Check to see if the final result returns false
             if($result == false) {
@@ -191,13 +167,10 @@ $app->get('/user', function() {
                 echoRespnse(404, $response); // echo the response of 404?
 
             } else {
-
-            //array_push($response["clubs"], $result);
-            array_push($response, $result);
-            echoRespnse(200, $response);
+                echoRespnse(200, $result);
         }
 
-        });
+    });
 
 
 /**

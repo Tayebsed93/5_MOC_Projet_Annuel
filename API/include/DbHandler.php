@@ -225,17 +225,10 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllUserScore() {
-        /*
-        $stmt = $this->conn->prepare("SELECT id,name,email,score FROM users ORDER BY score DESC");
-        $stmt->execute();
-        $composition = $stmt->get_result();
-        $stmt->close();
-        return $composition;
-        */
 
-         $stmt = $this->conn->prepare("SELECT id,name,email,score,picture FROM users ORDER BY score DESC");
+         $stmt = $this->conn->prepare("SELECT id,name,email,score,picture FROM users WHERE role = 'supporter' ORDER BY score DESC");
          if ($stmt->execute()) {
-            $res = array();
+            $res["scores"] = array();
             $stmt->store_result();
             $stmt->bind_result($id, $name, $email, $score, $picture);
             // TODO
@@ -247,11 +240,11 @@ class DbHandler {
                 $temp["email"] = $email;
                 $temp["score"] = $score;
                 $temp["picture"] = $picture;
-                
-                array_push($res, $temp);
+                array_push($res["scores"], $temp);
             }
 
             $stmt->close();
+
             return $res;
         } else {
             return NULL;
