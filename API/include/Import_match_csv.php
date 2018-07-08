@@ -28,19 +28,17 @@ if (isset($_POST['import'])) {
                 for ($c=0; $c < $num; $c++) {
                 //echo $data[$c] . "<br />\n";
         }
-        $Name = $data[0];
-        $Nationality = $data[1];
-        $National_Position = $data[2];
-        $Club = $data[4];
-        $Club_Position = $data[5];
-        $Club_Joining = $data[7];
-        $Contract_Expiry = $data[8];
-        $Rating = $data[9];
-        $Age = $data[14];
+        $match_home = $data[0];
+        $match_away = $data[1];
+        $groupe = $data[2];
+        $competition_name = $data[3];
+        $time_start = $data[4];
 
-        
+        var_dump($match_home);
+        var_dump($groupe);
         $db = new DbHandler();
-        $res = $db->importPlayerCSV($Name, $Nationality, $National_Position, $Club, $Club_Position, $Club_Joining, $Contract_Expiry, $Rating, $Age);
+        $res = $db->importMatchCSV($match_home, $match_away, $groupe, $competition_name, $time_start);
+
 
     }
     fclose($handle);
@@ -53,9 +51,7 @@ if (isset($_POST['upload'])) {
         echo '<strong>Choose a CSV FILE !!</strong>';
     } else {
         $racine = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
-        $content_httplogo = $racine . 'FootAPI/API/v1/CSVFolder/';
         $content_dir = __DIR__ . '/CSVFolder/';
-        //$content_dir = '/Applications/MAMP/tmp/';
         $tmp_file = $_FILES['fichiercsv']['tmp_name'];
         if (!is_uploaded_file($tmp_file)) {
             exit("The file is lost");

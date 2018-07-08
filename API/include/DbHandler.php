@@ -298,6 +298,94 @@ class DbHandler {
         }
     }
 
+
+        /* ------------- `actuality` table method ------------------ */
+
+    /**
+     * Creating new actuality
+     * @param String $user_id user id
+     * @param String $content content text
+     * @param BLOB $photo photo image
+     */
+    public function createActuality($user_id, $title, $content, $photo) {
+        $stmt = $this->conn->prepare("INSERT INTO actuality(title,content,photo) VALUES(?,?,?)");
+        $stmt->bind_param("sss", $title, $content, $photo);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        if ($result) {
+            // actuality row created
+            // now assign the actuality to user
+            $new_actuality_id = $this->conn->insert_id;
+            $res = $this->createUserActuality($user_id, $new_actuality_id);
+            if ($res) {
+                // actuality created successfully
+                return $new_actuality_id;
+            } else {
+                // actuality failed to create
+                return NULL;
+            }
+        } else {
+            // actuality failed to create
+            return NULL;
+        }
+    }
+
+    /**
+     * Fetching all user composition
+     * @param String $user_id id of the user
+     */
+    public function getAllActuality($user_id) {
+
+        //$stmt = $this->conn->prepare("SELECT * FROM actuality ");
+        $stmt = $this->conn->prepare("SELECT DISTINCT a.* FROM actuality a, user_actuality ua WHERE ua.user_id = $user_id");
+        
+         if ($stmt->execute()) {
+            $res["news"] = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $title, $content, $photo, $created_at);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["title"] = $title;
+                $temp["content"] = $content;
+                $temp["photo"] = $photo;
+                $temp["created_at"] = $created_at;
+                array_push($res["news"], $temp);
+            }
+
+
+            
+            $stmt->close();
+
+            return $res;
+        } else {
+            return NULL;
+        }
+    }
+
+    /* ------------- `user_actuality` table method ------------------ */
+
+    /**
+     * Function to assign a actuality to user
+     * @param String $user_id id of the user
+     * @param String $actuality id of the composition
+     */
+    public function createUserActuality($user_id, $actuality_id) {
+        $stmt = $this->conn->prepare("INSERT INTO user_actuality(user_id, actuality_id) values(?, ?)");
+        $stmt->bind_param("ii", $user_id, $actuality_id);
+        $result = $stmt->execute();
+
+        if (false === $result) {
+            die('execute() failed: ' . htmlspecialchars($stmt->error));
+        }
+        $stmt->close();
+        return $result;
+    }
+
+
            /* ------------- `club` table method ------------------ */
 
 
@@ -376,16 +464,19 @@ class DbHandler {
         return $composition;
         */
 
-        $stmt = $this->conn->prepare("SELECT * FROM club ");
+        
+        $stmt = $this->conn->prepare("SELECT c.*,  uc.user_id FROM club c, user_club uc WHERE uc.club_id = c.id");
+        //$stmt = $this->conn->prepare("SELECT * FROM club ");
          if ($stmt->execute()) {
             $res["clubs"] = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $nom, $logo, $license);
+            $stmt->bind_result($id, $nom, $logo, $license, $user_id);
             // TODO
             while($stmt->fetch())
             {           
                 $temp = array();
                 $temp["id"] = $id;
+                $temp["user_id"] = $user_id;
                 $temp["nom"] = $nom;
                 $temp["logo"] = $logo;
                 $temp["license"] = $license;
@@ -403,6 +494,43 @@ class DbHandler {
         }
     }
 
+/* ------------- `competition` table method ------------------ */
+
+    /**
+     * Function to assign a composition to user
+     * @param String $user_id id of the user
+     * @param String $composition_id id of the composition
+     */
+    public function getAllCompetition() {
+     
+         $stmt = $this->conn->prepare("SELECT c.* FROM competition c");
+        //$stmt = $this->conn->prepare("SELECT * FROM club ");
+         if ($stmt->execute()) {
+            $res["competitions"] = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $match_home, $match_away, $groupe, $composition_name, $time_start);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["match_home"] = $match_home;
+                $temp["match_away"] = $match_away;
+                $temp["groupe"] = $groupe;
+                $temp["composition_name"] = $composition_name;
+                $temp["time_start"] = $time_start;
+                array_push($res["competitions"], $temp);
+            }
+
+
+            
+            $stmt->close();
+
+            return $res;
+        } else {
+            return NULL;
+        }
+    }
 
 
 /* ------------- `user_composition` table method ------------------ */
@@ -612,6 +740,25 @@ class DbHandler {
 
         $stmt = $this->conn->prepare("INSERT INTO player(Name, Nationality, National_Position, Club, Club_Position, Club_Joining, Contract_Expiry, Rating, Age) VALUES(?,?,?,?,?,?,?,?,?)");
         $stmt->bind_param("sssssssss", $Name, $Nationality, $National_Position, $Club, $Club_Position, $Club_Joining, $Contract_Expiry, $Rating, $Age);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+
+    }
+
+            /* ------------- `match` table method ------------------ */
+
+    /**
+     * ImportCSV in table player
+     * @param String $match_home name
+     * @param String $match_away Nationality text
+     * @param String $groupe text
+     */
+
+    public function importMatchCSV($match_home, $match_away, $groupe, $competition_name, $time_start) {
+
+        $stmt = $this->conn->prepare("INSERT INTO competition(match_home, match_away, groupe, competition_name, time_start) VALUES(?,?,?,?,?)");
+        $stmt->bind_param("sssss", $match_home, $match_away, $groupe, $competition_name, $time_start);
         $result = $stmt->execute();
         $stmt->close();
         return $result;

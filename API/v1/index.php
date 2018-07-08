@@ -394,6 +394,102 @@ $app->post('/composition','authenticate', function() use ($app) {
 
 
 /**
+ * Creating new actuality in db
+ * method POST
+ * params - name
+ * url - /actuality
+ */
+$app->post('/actuality','authenticate', function() use ($app) {
+            // check for required params
+            verifyRequiredParams(array('content'));
+
+            $response = array();
+            $content = $app->request->post('content');
+            $title = $app->request->post('content');
+            global $user_id;
+            $db = new DbHandler();
+
+            if (!isset($_FILES['photo']) OR filesize($_FILES['photo']['tmp_name']) == 0 ) {
+
+                $response["error"] = true;
+                $response["message"] = 'Required field(s) ' . 'photo' . ' is missing or empty';
+                echoRespnse(400, $response);
+                return;
+            } else {
+                $photo = $_FILES['photo'];
+                $logotype = $_FILES['photo']['type'];
+                $logoname = $_FILES['photo']['name'];
+            }
+
+
+            $racine = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
+            $content_httpphoto = $racine . 'FootAPI/API/v1/ActualityPictures/';
+
+            $content_dirphoto = __DIR__ . '/ActualityPictures/';
+            $tmp_photo = $_FILES['photo']['tmp_name'];
+            $taille_max = 250000;
+
+            if (!is_uploaded_file($tmp_photo)) {
+            $response["message_actuality"] = "Pas d'image";
+            exit("The file is lost");
+            }
+
+
+             // on copie le fichier dans le dossier de destination
+            $photo_file = $_FILES['photo']['name'];
+            if (!move_uploaded_file($tmp_photo, $content_dirphoto . $photo_file)) {
+                exit("Impossible to copy the file photo to $content_dirphoto");
+            }
+            $filephoto = "$content_httpphoto" . "$photo_file";
+
+            // creating new composition
+            $composition_id = $db->createActuality($user_id, $title, $content, $filephoto);
+
+            if ($composition_id != NULL) {
+                $response["error"] = false;
+                $response["message"] = "Actuality created successfully";
+                //$response["actuality_id"] = $actuality_id;
+                echoRespnse(201, $response);
+                //$res = $db->createViewCompoAdmin();
+            } else {
+                $response["error"] = true;
+                $response["message"] = "Failed to create actuality. Please try again";
+                echoRespnse(200, $response);
+            }            
+        });
+
+
+
+/**
+ * Listing all actuality
+ * method GET
+ * url /actuality         
+ */
+$app->get('/actuality/:id', function($user_id) use($app) {
+
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user poubelles
+            $result = $db->getAllActuality($user_id);
+
+            $response["error"] = false;
+            $response["news"] = array();
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+                echoRespnse(200, $result);
+        }
+
+    });
+
+
+/**
  * Creating new club in db
  * method POST
  * params - name
@@ -470,7 +566,6 @@ $app->post('/club', function() use ($app) {
             $filelogo = "$content_httplogo" . "$logo_file";
             $filelicense = "$content_httplicense" . "$license_file";
         
-
             $db = new DbHandler();
 
             // validating email address
@@ -553,30 +648,8 @@ $app->post('/club', function() use ($app) {
  * method GET
  * url /club         
  */
+
 $app->get('/club', function() {
-    /*
-            $response = array();
-            $db = new DbHandler();
-
-            // fetching all club
-            $result = $db->getAllClub();
-            $response["error"] = false;
-            $response["clubs"] = array();
-
-            // looping through result and preparing user array
-            while ($clubs = $result->fetch_assoc()) {
-                $tmp = array();
-                $tmp["id"] = $clubs["id"];
-                $tmp["nom"] = $clubs["nom"];
-                $tmp["logo"] = $clubs["logo"];
-                $tmp["license"] = $clubs["license"];
-                array_push($response["clubs"], $tmp);
-            }
-
-            echoRespnse(200, $response);
-        });
-
-*/
 
             $response = array();
             $db = new DbHandler();
@@ -635,27 +708,24 @@ $app->post('/poubelles/date', 'authenticate', function() use ($app) {
 
         });
 
+        
+
 /**
- * Listing size for last user id
- * method POST
- * url /poubelles/size         
+ * Listing all competition
+ * method GET
+ * url /competition         
  */
 
-$app->post('/poubelles/size', 'authenticate', function() use ($app) {
+$app->get('/competition', function() {
 
-            // check for required params
-            verifyRequiredParams(array('annee'));
-            $annee = $app->request->post('annee');
-
-            global $user_id;
             $response = array();
             $db = new DbHandler();
 
             // fetching all user poubelles
-            $result = $db->getAllUserPoubelleSize($user_id, $annee);
+            $result = $db->getAllCompetition();
 
             $response["error"] = false;
-            $response["poubelle"] = array();
+            $response["competitions"] = array();
 
             // Check to see if the final result returns false
             if($result == false) {
@@ -664,13 +734,11 @@ $app->post('/poubelles/size', 'authenticate', function() use ($app) {
                 echoRespnse(404, $response); // echo the response of 404?
 
             } else {
-
-            array_push($response, $result);
-            echoRespnse(200, $response);
+                echoRespnse(200, $result);
         }
 
-        });
-        
+    });
+
 
 /**
  * Updating existing poubelle
