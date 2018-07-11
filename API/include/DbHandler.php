@@ -140,18 +140,47 @@ class DbHandler {
      * @param String $email User email id
      */
     public function getUserByEmail($email) {
-        $stmt = $this->conn->prepare("SELECT id, name, email, api_key, role, created_at FROM users WHERE email = ?");
+
+        $stmt = $this->conn->prepare("SELECT u.id, u.name as 'name_user', u.email, u.api_key, u.role, c.nom as 'name_club', u.created_at FROM users u, user_club uc, club c WHERE email = ? AND uc.user_id = u.id AND uc.club_id = c.id");
+        
         $stmt->bind_param("s", $email);
         if ($stmt->execute()) {
             // $user = $stmt->get_result()->fetch_assoc();
-            $stmt->bind_result($id, $name, $email, $api_key, $role, $created_at);
+            $stmt->bind_result($id, $name_user, $email, $api_key, $role, $name_club, $created_at);
+            $stmt->fetch();
+            $user = array();
+            $user["id"] = $id;
+            $user["name_user"] = $name_user;
+            $user["email"] = $email;
+            $user["api_key"] = $api_key;
+            $user["role"] = $role;
+            $user["name_club"] = $name_club;
+            $user["created_at"] = $created_at;
+            $stmt->close();
+            return $user;
+        } else {
+            return NULL;
+        }
+    }
+
+       /**
+     * Fetching user by email
+     * @param String $email User email id
+     */
+    public function getUserFBByEmail($email) {
+
+        $stmt = $this->conn->prepare("SELECT u.id, u.name, u.email, u.api_key, u.created_at FROM users u WHERE email = ? ");
+        
+        $stmt->bind_param("s", $email);
+        if ($stmt->execute()) {
+            // $user = $stmt->get_result()->fetch_assoc();
+            $stmt->bind_result($id, $name, $email, $api_key, $created_at);
             $stmt->fetch();
             $user = array();
             $user["id"] = $id;
             $user["name"] = $name;
             $user["email"] = $email;
             $user["api_key"] = $api_key;
-            $user["role"] = $role;
             $user["created_at"] = $created_at;
             $stmt->close();
             return $user;
@@ -338,7 +367,7 @@ class DbHandler {
     public function getAllActuality($user_id) {
 
         //$stmt = $this->conn->prepare("SELECT * FROM actuality ");
-        $stmt = $this->conn->prepare("SELECT DISTINCT a.* FROM actuality a, user_actuality ua WHERE ua.user_id = $user_id");
+        $stmt = $this->conn->prepare("SELECT a.* FROM actuality a, user_actuality ua WHERE a.id = ua.actuality_id AND ua.user_id = $user_id");
         
          if ($stmt->execute()) {
             $res["news"] = array();
@@ -677,8 +706,6 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllPlayer($nationality) {
-    
-
 
           $stmt = $this->conn->prepare("SELECT id, Name, Age FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
          if ($stmt->execute()) {
@@ -743,7 +770,6 @@ class DbHandler {
         $result = $stmt->execute();
         $stmt->close();
         return $result;
-
     }
 
             /* ------------- `match` table method ------------------ */
