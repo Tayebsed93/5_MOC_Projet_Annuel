@@ -485,15 +485,6 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllClub() {
-        /*
-        $stmt = $this->conn->prepare("SELECT * FROM club ");
-        $stmt->execute();
-        $composition = $stmt->get_result();
-        $stmt->close();
-        return $composition;
-        */
-
-        
         $stmt = $this->conn->prepare("SELECT c.*,  uc.user_id FROM club c, user_club uc WHERE uc.club_id = c.id");
         //$stmt = $this->conn->prepare("SELECT * FROM club ");
          if ($stmt->execute()) {
@@ -512,8 +503,6 @@ class DbHandler {
 
                 array_push($res["clubs"], $temp);
             }
-
-
             
             $stmt->close();
 
@@ -586,15 +575,6 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllUserComposition($user_id) {
-        /*
-        $stmt = $this->conn->prepare("SELECT c.* FROM composition c, user_composition uc WHERE c.id = uc.composition_id AND uc.user_id = ?");
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $composition = $stmt->get_result();
-        $stmt->close();
-        return $composition;
-        */
-
          $stmt = $this->conn->prepare("SELECT c.* FROM composition c, user_composition uc WHERE c.id = uc.composition_id AND uc.user_id = '$user_id'");
          if ($stmt->execute()) {
             $res = array();
