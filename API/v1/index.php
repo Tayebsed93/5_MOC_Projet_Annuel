@@ -288,29 +288,6 @@ $app->get('/composition', 'authenticate', function() {
  * url /composition         
  */
 $app->get('/composition/result', 'authenticate', function() {
-    /*
-            $response = array();
-            $db = new DbHandler();
-
-            // fetching all user composition
-            $result = $db->getResultComposition();
-
-            $response["error"] = false;
-            $response["composition"] = array();
-
-            // looping through result and preparing composition array
-            while ($composition = $result->fetch_assoc()) {
-                $tmp = array();
-                $tmp["id"] = $composition["id"];
-                $tmp["nation"] = $composition["nation"];
-                $tmp["player"] = $composition["player"];
-                $tmp["createdAt"] = $composition["created_at"];
-                array_push($response["composition"], $tmp);
-            }
-
-            echoRespnse(200, $response);
-        });
-        */
 
             $response = array();
             $db = new DbHandler();
