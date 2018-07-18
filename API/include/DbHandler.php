@@ -32,7 +32,7 @@ class DbHandler {
         require_once 'PassHash.php';
         $response = array();
 
-        var_dump("expression");
+
         // First check if user already existed in db
         if (!$this->isUserExists($email)) {
             // Generating password hash
@@ -121,7 +121,49 @@ class DbHandler {
     }
 
     /**
-     * Checking for duplicate user by email address
+     * Checking for duplicate user by competition_id, user_id 
+     * @param String $competition_id competition_id to check in db
+     * @param String $user_id user_id to check in db
+     * @return boolean
+     */
+
+    private function isUserCompoExist($competition_id, $user_id) {
+        $stmt = $this->conn->prepare("SELECT c.id, c.nation 
+        FROM composition c, user_composition uc
+        WHERE c.id = uc.composition_id
+        AND uc.competition_id = ?
+        AND uc.user_id = ?");
+        $stmt->bind_param("ii", $competition_id, $user_id);
+        $stmt->execute();
+        $stmt->store_result();
+        $num_rows = $stmt->num_rows;
+        $stmt->close();
+        return $num_rows > 0;
+    }
+
+        /**
+     * Checking for duplicate user by competition_id, user_id 
+     * @param String $competition_id competition_id to check in db
+     * @param String $user_id user_id to check in db
+     * @return boolean
+     */
+
+    private function isUserCompoExistCSV($competition_id, $compouser_id) {
+        $stmt = $this->conn->prepare("SELECT c.id, c.nation 
+        FROM composition c, user_composition uc
+        WHERE c.id = uc.composition_id
+        AND uc.competition_id = ?
+        AND uc.user_id = 42");
+        $stmt->bind_param("i", $competition_id);
+        $stmt->execute();
+        $stmt->store_result();
+        $num_rows = $stmt->num_rows;
+        $stmt->close();
+        return $num_rows > 0;
+    }
+
+    /**
+     * Checking for duplicate compo by email address
      * @param String $email email to check in db
      * @return boolean
      */
@@ -163,6 +205,33 @@ class DbHandler {
         }
     }
 
+        /**
+     * Fetching user by email
+     * @param String $email User email id
+     */
+    public function getUserByEmailBeforeClub($email) {
+
+        $stmt = $this->conn->prepare("SELECT u.id, u.name, u.email, u.api_key, u.role, u.created_at FROM users u WHERE email = ?");
+        
+        $stmt->bind_param("s", $email);
+        if ($stmt->execute()) {
+            // $user = $stmt->get_result()->fetch_assoc();
+            $stmt->bind_result($id, $name, $email, $api_key, $role, $created_at);
+            $stmt->fetch();
+            $user = array();
+            $user["id"] = $id;
+            $user["name"] = $name;
+            $user["email"] = $email;
+            $user["api_key"] = $api_key;
+            $user["role"] = $role;
+            $user["created_at"] = $created_at;
+            $stmt->close();
+            return $user;
+        } else {
+            return NULL;
+        }
+    }
+
        /**
      * Fetching user by email
      * @param String $email User email id
@@ -184,6 +253,32 @@ class DbHandler {
             $user["created_at"] = $created_at;
             $stmt->close();
             return $user;
+        } else {
+            return NULL;
+        }
+    }
+
+
+           /**
+     * Fetching user by email
+     * @param String $email User email id
+     */
+    public function getUserCompo() {
+
+        $stmt = $this->conn->prepare("SELECT c.id, c.nation, c.player 
+        FROM composition c, user_composition uc
+        WHERE c.id = uc.composition_id");
+        
+        if ($stmt->execute()) {
+            // $user = $stmt->get_result()->fetch_assoc();
+            $stmt->bind_result($id, $nation, $player);
+            $stmt->fetch();
+            $compo = array();
+            $compo["id"] = $id;
+            $compo["nation"] = $nation;
+            $compo["player"] = $player;
+            $stmt->close();
+            return $compo;
         } else {
             return NULL;
         }
@@ -285,12 +380,13 @@ class DbHandler {
      * @param String $user_id id of the user
      * @param String $score score integer
      */
-    public function updateUserScore($user_id, $score) {
+    public function updateUserScore($user_id) {
         var_dump($user_id);
-        var_dump($score);
-        $stmt = $this->conn->prepare("UPDATE users SET score = ? where id=? AND role != 'admin' ");
-        $stmt->bind_param("ii", $score, $user_id);
+        $stmt = $this->conn->prepare("UPDATE users SET score = score +10 where id=? AND role != 'admin' ");
+
+        $stmt->bind_param("s", $user_id);
         $stmt->execute();
+
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();
         return $num_affected_rows > 0;
@@ -303,28 +399,48 @@ class DbHandler {
      * @param String $user_id user id to whom player belongs to
      * @param String $player player text
      */
-    public function createComposition($user_id, $player,$nation) {
-        $stmt = $this->conn->prepare("INSERT INTO composition(player,nation) VALUES(?,?)");
-        $stmt->bind_param("ss", $player,$nation);
-        $result = $stmt->execute();
-        $stmt->close();
+    public function createComposition($user_id, $player,$nation, $competition_id) {
 
-        if ($result) {
-            // composition row created
-            // now assign the composition to user
-            $new_composition_id = $this->conn->insert_id;
-            $res = $this->createUserComposition($user_id, $new_composition_id);
-            if ($res) {
-                // composition created successfully
-                return $new_composition_id;
-            } else {
+        $response = array();
+
+        // First check if user already existed in db
+        if (!$this->isUserCompoExist($competition_id, $user_id)) {
+
+            // insert query
+            $stmt = $this->conn->prepare("INSERT INTO composition(player,nation) VALUES(?,?)");
+            $stmt->bind_param("ss", $player,$nation);
+
+            $result = $stmt->execute();
+
+            $stmt->close();
+
+            // Check for successful insertion
+            if ($result) {
+                // User successfully inserted
+                        $new_composition_id = $this->conn->insert_id;
+                        var_dump($new_composition_id);
+                        var_dump($competition_id);
+                        var_dump($user_id);
+                        $res = $this->createUserComposition($user_id, $new_composition_id, $competition_id);
+                if ($res) {
+                    // composition created successfully
+                    //return $new_composition_id;
+                    return COMPO_CREATED_SUCCESSFULLY;
+                } else {
                 // composition failed to create
                 return NULL;
             }
+                
+            } else {
+                // Failed to create user
+                return COMPO_CREATE_FAILED;
+            }
         } else {
-            // composition failed to create
-            return NULL;
+            // User with same email already existed in the db
+            return COMPO_ALREADY_EXISTED;
         }
+
+        return $response;
     }
 
 
@@ -519,14 +635,67 @@ class DbHandler {
      * @param String $user_id id of the user
      * @param String $composition_id id of the composition
      */
-    public function getAllCompetition() {
+    public function getAllCompetition($user_id) {
      
-         $stmt = $this->conn->prepare("SELECT c.* FROM competition c");
+         $stmt = $this->conn->prepare("SELECT DISTINCT c.id, c.match_home, c.match_away, c.groupe, c.competition_name, c.time_start, 0 as user_id FROM competition c UNION SELECT DISTINCT competition.id ,competition.match_home, competition.match_away, competition.groupe, competition.competition_name, competition.time_start, uc.user_id FROM user_composition uc, competition competition WHERE uc.user_id = $user_id AND uc.competition_id = competition.id");
+        //$stmt = $this->conn->prepare("SELECT id, match_home, match_away, groupe, competition_name, time_start FROM competition");
+         if ($stmt->execute()) {
+            $res["competitions"] = array();
+            $stmt->store_result();
+            $stmt->bind_result($id, $match_home, $match_away, $groupe, $competition_name, $time_start, $user_id);
+            //$stmt->bind_result($id, $match_home, $match_away, $groupe, $competition_name, $time_start);
+            // TODO
+            while($stmt->fetch())
+            {
+
+                $user_id_avec = 0;
+                /*
+                if ($user_id > 0) {
+                    $id_avec = $id;
+                    $user_id_avec = $user_id;
+
+                    var_dump("YES");
+                    var_dump($id_avec);
+                    var_dump($user_id_avec);
+
+
+                }
+                */           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["match_home"] = $match_home;
+                $temp["match_away"] = $match_away;
+                $temp["groupe"] = $groupe;
+                $temp["competition_name"] = $competition_name;
+                $temp["time_start"] = $time_start;
+                $temp["user_id"] = $user_id;
+
+
+                array_push($res["competitions"], $temp);
+            }
+
+            
+            $stmt->close();
+
+            return $res;
+        } else {
+            return NULL;
+        }
+    }
+
+        /**
+     * Function to assign a composition to user
+     * @param String $user_id id of the user
+     * @param String $composition_id id of the composition
+     */
+    public function getCompetitionUser($user_id) {
+     
+         $stmt = $this->conn->prepare("SELECT competition.id, competition.match_home, competition.match_away, competition.groupe, competition.time_start, uc.user_id FROM user_composition uc, composition composition, competition competition WHERE uc.competition_id = competition.id AND uc.composition_id = composition.id AND uc.user_id = $user_id");
         //$stmt = $this->conn->prepare("SELECT * FROM club ");
          if ($stmt->execute()) {
             $res["competitions"] = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $match_home, $match_away, $groupe, $composition_name, $time_start);
+            $stmt->bind_result($id, $match_home, $match_away, $groupe, $time_start, $user_id);
             // TODO
             while($stmt->fetch())
             {           
@@ -535,8 +704,8 @@ class DbHandler {
                 $temp["match_home"] = $match_home;
                 $temp["match_away"] = $match_away;
                 $temp["groupe"] = $groupe;
-                $temp["composition_name"] = $composition_name;
                 $temp["time_start"] = $time_start;
+                $temp["user_id"] = $user_id;
                 array_push($res["competitions"], $temp);
             }
 
@@ -549,6 +718,7 @@ class DbHandler {
             return NULL;
         }
     }
+    
 
 
 /* ------------- `user_composition` table method ------------------ */
@@ -558,10 +728,16 @@ class DbHandler {
      * @param String $user_id id of the user
      * @param String $composition_id id of the composition
      */
-    public function createUserComposition($user_id, $composition_id) {
-        $stmt = $this->conn->prepare("INSERT INTO user_composition(user_id, composition_id) values(?, ?)");
-        $stmt->bind_param("ii", $user_id, $composition_id);
+    public function createUserComposition($user_id, $composition_id, $competition_id) {
+        $db = new DbHandler();
+        $stmt = $this->conn->prepare("INSERT INTO user_composition(user_id, composition_id, competition_id) values(?, ?, ?)");
+        $stmt->bind_param("iii", $user_id, $composition_id, $competition_id);
         $result = $stmt->execute();
+        if ($user_id == 42) {
+            $result = $db->getResultComposition($competition_id);
+
+
+        }
 
         if (false === $result) {
             die('execute() failed: ' . htmlspecialchars($stmt->error));
@@ -604,13 +780,16 @@ class DbHandler {
      * Fetching all user composition
      * @param String $user_id id of the user
      */
-    public function getResultComposition() {
-        $stmt = $this->conn->prepare("SELECT id, nation, player, created_at FROM touslesjoueursnoadmin noadmin WHERE EXISTS(SELECT * FROM touslesjoueursadmin c2 
-            WHERE c2.nation = noadmin.nation AND c2.player = noadmin.player)");
+    public function getResultComposition($competition_id) {
+        $db = new DbHandler();
+        
+        $stmt = $this->conn->prepare("SELECT noadmin.id, noadmin.nation, noadmin.player, uc.user_id, noadmin.api_key, noadmin.created_at, noadmin.competition_id FROM touslesjoueursnoadmin noadmin, user_composition uc WHERE uc.composition_id = noadmin.id AND uc.competition_id = $competition_id AND EXISTS(SELECT * FROM touslesjoueursadmin c2 
+            WHERE c2.nation = noadmin.nation AND c2.player = noadmin.player AND c2.competition_id = noadmin.competition_id)");
+
          if ($stmt->execute()) {
             $res = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $nation, $player, $created_at);
+            $stmt->bind_result($id, $nation, $player, $user_id, $api_key, $created_at, $competition_id);
             // TODO
             while($stmt->fetch())
             {           
@@ -618,16 +797,34 @@ class DbHandler {
                 $temp["id"] = $id;
                 $temp["nation"] = $nation;
                 $temp["player"] = $player;
+                $temp["user_id"] = $user_id;
+                $temp["api_key"] = $api_key;
                 $temp["created_at"] = $created_at;
-                
+                $temp["competition_id"] = $competition_id;
+               
+                $result = $db->updateUserScore($user_id);
+
                 array_push($res, $temp);
             }
+
+                
 
             $stmt->close();
             return $res;
         } else {
             return NULL;
         }
+    }
+
+        /**
+     * Delete composition sauf admin
+     */
+    public function deleteComposition() {
+        $stmt = $this->conn->prepare("DELETE c.*, uc.* FROM composition c, user_composition uc WHERE c.id = uc.composition_id AND uc.user_id = 42");
+        $stmt->execute();
+        $num_affected_rows = $stmt->affected_rows;
+        $stmt->close();
+        return $num_affected_rows > 0;
     }
 
 
@@ -637,11 +834,11 @@ class DbHandler {
      */
     public function createViewCompoNoAdmin() {
         $stmt = $this->conn->prepare("CREATE OR REPLACE VIEW touslesjoueursnoadmin AS
-        SELECT c.*, u.api_key
+        SELECT c.*, u.api_key, uc.competition_id
         FROM composition c, user_composition uc, users u
         WHERE c.id = uc.composition_id
         AND u.id =  uc.user_id
-        AND uc.user_id != 193");
+        AND uc.user_id != 42");
         //$stmt->bind_param("i", $user_id);
   
         //$stmt->bind_param("s", $nationality);
@@ -657,9 +854,9 @@ class DbHandler {
      */
     public function createViewCompoAdmin() {
         $stmt = $this->conn->prepare("CREATE OR REPLACE VIEW touslesjoueursadmin AS
-        SELECT c.* 
+        SELECT c.*, uc.competition_id
         FROM composition c, user_composition uc 
-        WHERE c.id = uc.composition_id AND uc.user_id = 193");
+        WHERE c.id = uc.composition_id AND uc.user_id = 42");
         //$stmt->bind_param("i", $user_id);
   
         //$stmt->bind_param("s", $nationality);
@@ -755,6 +952,61 @@ class DbHandler {
         $result = $stmt->execute();
         $stmt->close();
         return $result;
+
+    }
+
+
+
+                /* ------------- `composition` table method ------------------ */
+
+    /**
+     * ImportCSV in table player
+     * @param String $match_home name
+     * @param String $match_away Nationality text
+     * @param String $groupe text
+     */
+
+    public function importCompoCSV($player, $nation, $competition_id) {
+
+        $response = array();
+
+        // First check if user already existed in db
+        if (!$this->isUserCompoExistCSV($competition_id, 42)) {
+
+            // insert query
+            $stmt = $this->conn->prepare("INSERT INTO composition(player,nation) VALUES(?,?)");
+            $stmt->bind_param("ss", $player,$nation);
+
+            $result = $stmt->execute();
+
+            $stmt->close();
+
+            // Check for successful insertion
+            if ($result) {
+                // User successfully inserted
+                        $new_composition_id = $this->conn->insert_id;
+                        var_dump($new_composition_id);
+                        var_dump($competition_id);
+                        $res = $this->createUserComposition(42, $new_composition_id, $competition_id);
+                if ($res) {
+                    // composition created successfully
+                    //return $new_composition_id;
+                    return COMPO_CREATED_SUCCESSFULLY;
+                } else {
+                // composition failed to create
+                return NULL;
+            }
+                
+            } else {
+                // Failed to create user
+                return COMPO_CREATE_FAILED;
+            }
+        } else {
+            // User with same email already existed in the db
+            return COMPO_ALREADY_EXISTED;
+        }
+
+        return $response;
 
     }
 

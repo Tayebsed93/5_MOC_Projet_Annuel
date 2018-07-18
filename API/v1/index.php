@@ -15,7 +15,7 @@ use Slim\Http\UploadedFile;
 $app = new \Slim\Slim();
 
 // User id from db - Global Variable
-$user_id = NULL;
+$user_id = 0;
 
 /**
  * Adding Middle Layer to authenticate every request
@@ -51,6 +51,41 @@ function authenticate(\Slim\Route $route) {
         $response["message"] = "Api key is misssing";
         echoRespnse(400, $response);
         $app->stop();
+    }
+}
+
+
+/**
+ * Adding Middle Layer to authenticate every request
+ * Checking if the request has valid api key in the 'Authorization' header
+ */
+function authenticateSpecial(\Slim\Route $route) {
+    // Getting request headers
+    $headers = apache_request_headers();
+    $response = array();
+    $app = \Slim\Slim::getInstance();
+
+    // Verifying Authorization Header
+    if (isset($headers['Authorization'])) {
+        $db = new DbHandler();
+
+        // get the api key
+        $api_key = $headers['Authorization'];
+        // validating api key
+        if (!$db->isValidApiKey($api_key)) {
+            // api key is not present in users table
+            $response["error"] = true;
+            $response["message"] = "Access Denied. Invalid Api key";
+            
+        } else {
+            global $user_id;
+            // get user primary key id
+            $user_id = $db->getUserId($api_key);
+        }
+    } else {
+        // api key is missing in header
+        $response["error"] = true;
+        $response["message"] = "Api key is misssing";
     }
 }
 
@@ -223,18 +258,16 @@ $app->get('/user', function() {
  * url - /user/
  */
 
-$app->put('/user', 'authenticate', function() use($app) {
-            // check for required params
-            verifyRequiredParams(array('score'));
+$app->put('/user', function() use($app) {
 
-            global $user_id;            
-            $score = $app->request->put('score');
+                     
 
             $db = new DbHandler();
             $response = array();
 
             // updating size
-            $result = $db->updateUserScore($user_id, $score);
+            $result = $db->updateUserScore(147);
+
             if ($result) {
                 // poubelle updated successfully
                 $response["error"] = false;
@@ -263,9 +296,7 @@ $app->get('/composition', 'authenticate', function() {
 
             $response["error"] = false;
             $response["compositions"] = array();
-
-
-
+            
             // Check to see if the final result returns false
             if($result == false) {
                 $response['error'] = true;
@@ -287,7 +318,7 @@ $app->get('/composition', 'authenticate', function() {
  * method GET
  * url /composition         
  */
-$app->get('/composition/result', 'authenticate', function() {
+$app->get('/composition/result', function() {
 
             $response = array();
             $db = new DbHandler();
@@ -386,28 +417,29 @@ $app->get('/poubelles/:id', 'authenticate', function($poubelle_id) {
  */
 $app->post('/composition','authenticate', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('player', 'nation'));
+            verifyRequiredParams(array('player', 'nation', 'competition_id'));
 
             $response = array();
             $player = $app->request->post('player');
             $nation = $app->request->post('nation');
-
+            $competition_id = $app->request->post('competition_id');
             global $user_id;
             $db = new DbHandler();
 
             // creating new composition
-            $composition_id = $db->createComposition($user_id, $player, $nation);
-
+            $composition_id = $db->createComposition($user_id, $player, $nation, $competition_id);
+            
             if ($composition_id != NULL) {
-                $response["error"] = false;
-                $response["message"] = "Composition created successfully";
-                $response["composition_id"] = $composition_id;
+                $response["error"] = true;
+                $response["message"] = "Failed to create composition. Please try again";
+                //$response["composition_id"] = $composition_id;
                 echoRespnse(201, $response);
                 $res = $db->createViewCompoAdmin();
                 $res2 = $db->createViewCompoNoAdmin();
             } else {
-                $response["error"] = true;
-                $response["message"] = "Failed to create composition. Please try again";
+                $response["error"] = false;
+                $response["message"] = "Composition created successfully";
+                //$response["composition_id"] = $composition_id;
                 echoRespnse(200, $response);
             }            
         });
@@ -422,6 +454,7 @@ $app->post('/composition','authenticate', function() use ($app) {
 $app->post('/actuality','authenticate', function() use ($app) {
             // check for required params
             verifyRequiredParams(array('content'));
+            verifyRequiredParams(array('title'));
 
             $response = array();
             $content = $app->request->post('content');
@@ -432,7 +465,7 @@ $app->post('/actuality','authenticate', function() use ($app) {
             if (!isset($_FILES['photo']) OR filesize($_FILES['photo']['tmp_name']) == 0 ) {
 
                 $response["error"] = true;
-                $response["message"] = 'Required field(s) ' . 'photo' . ' is missing or empty';
+                $response["message"] = 'Champs obligatoire : ' . 'photo' . ' est manquant ou vide';
                 echoRespnse(400, $response);
                 return;
             } else {
@@ -447,6 +480,11 @@ $app->post('/actuality','authenticate', function() use ($app) {
 
             $content_dirphoto = __DIR__ . '/ActualityPictures/';
             $tmp_photo = $_FILES['photo']['tmp_name'];
+            $tmp_photo = preg_replace('/\s+/', '', $tmp_photo);
+            $tmp_photo = strtr($tmp_photo, '@ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ',
+                                            'aAAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy'
+                                            );
+            var_dump($tmp_photo);
             $taille_max = 250000;
 
             if (!is_uploaded_file($tmp_photo)) {
@@ -457,6 +495,12 @@ $app->post('/actuality','authenticate', function() use ($app) {
 
              // on copie le fichier dans le dossier de destination
             $photo_file = $_FILES['photo']['name'];
+
+            $photo_file = preg_replace('/\s+/', '', $photo_file);
+            $photo_file = strtr($photo_file, '@ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðòóôõöùúûüýÿ',
+                                            'aAAAAAACEEEEIIIIOOOOOUUUUYaaaaaaceeeeiiiioooooouuuuyy'
+                                            );
+            var_dump($photo_file);
             if (!move_uploaded_file($tmp_photo, $content_dirphoto . $photo_file)) {
                 exit("Impossible to copy the file photo to $content_dirphoto");
             }
@@ -533,7 +577,7 @@ $app->post('/club', function() use ($app) {
             if (!isset($_FILES['logo']) OR filesize($_FILES['logo']['tmp_name']) == 0 ) {
 
                 $response["error"] = true;
-                $response["message"] = 'Required field(s) ' . 'logo' . ' is missing or empty';
+                $response["message"] = 'Champs obligatoire : ' . 'logo' . ' est manquant ou vide';
                 echoRespnse(400, $response);
                 return;
             } else {
@@ -541,15 +585,16 @@ $app->post('/club', function() use ($app) {
                 $logotype = $_FILES['logo']['type'];
                 $logoname = $_FILES['logo']['name'];
             }
-
+/*
             if (!isset($_FILES['license']) OR filesize($_FILES['license']['tmp_name']) == 0) {
                 $response["error"] = true;
-                $response["message"] = 'Required field(s) ' . 'license' . ' is missing or empty';
-                echoRespnse(400, $response);
-                return;
+                $response["message"] = 'Champs obligatoire : ' . 'license' . ' est manquant ou vide';
+                //echoRespnse(400, $response);
+                //return;
             } else {
-                $license = $_FILES['license'];
+                //$license = $_FILES['license'];
             }
+            */
 
          
         $racine = (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
@@ -559,7 +604,9 @@ $app->post('/club', function() use ($app) {
         $content_dirlogo = __DIR__ . '/ClubPictures/';
         $content_dirlicense = __DIR__ . '/LicensePictures/';
         $tmp_logo = $_FILES['logo']['tmp_name'];
-        $tmp_license = $_FILES['license']['tmp_name'];
+        $tmp_logo = preg_replace('/\s+/', '', $tmp_logo);
+        //$tmp_license = $_FILES['license']['tmp_name'];
+        //$tmp_license = preg_replace('/\s+/', '', $tmp_license);
         $taille_max = 250000;
 
 
@@ -568,28 +615,32 @@ $app->post('/club', function() use ($app) {
             exit("The file is lost");
         }
 
+/*
         if (!is_uploaded_file($tmp_license)) {
             $response["message_club"] = "Pas d'image";
             exit("The file is lost");
         }
+        */
 
         
             // on copie le fichier dans le dossier de destination
             $logo_file = $_FILES['logo']['name'];
-            $license_file = $_FILES['license']['name'];
+            $logo_file = preg_replace('/\s+/', '', $logo_file);
+            //$license_file = $_FILES['license']['name'];
+            //$license_file = preg_replace('/\s+/', '', $license_file);
             if (!move_uploaded_file($tmp_logo, $content_dirlogo . $logo_file)) {
                 exit("Impossible to copy the file logo to $content_dirlogo");
             }
-            if (!move_uploaded_file($tmp_license, $content_dirlicense . $license_file)) {
-                exit("Impossible to copy the file license to $content_dirlicense");
-            }
+            //if (!move_uploaded_file($tmp_license, $content_dirlicense . $license_file)) {
+            //    exit("Impossible to copy the file license to $content_dirlicense");
+            //}
             $filelogo = "$content_httplogo" . "$logo_file";
-            $filelicense = "$content_httplicense" . "$license_file";
+            //$filelicense = "$content_httplicense" . "$license_file";
         
             $db = new DbHandler();
 
             // validating email address
-            //validateEmail($email);
+            validateEmail($email);
 
             // creating user president
             $res = $db->createUser($name, $email, $password, $role, $picture);
@@ -599,7 +650,7 @@ $app->post('/club', function() use ($app) {
 
                 if ($db->checkLogin($email, $password)) {
                 // get the user by email
-                $users = $db->getUserByEmail($email);
+                $users = $db->getUserByEmailBeforeClub($email);
 
                 if ($users != NULL) {
                     $response["error"] = false;
@@ -611,7 +662,8 @@ $app->post('/club', function() use ($app) {
                     $response['createdAt'] = $users['created_at'];
 
                     // creating new club
-                    $club_id = $db->createClub($response['id'], $nom, $filelogo, $filelicense);
+                    //$club_id = $db->createClub($response['id'], $nom, $filelogo, $filelicense);
+                    $club_id = $db->createClub($response['id'], $nom, $filelogo, "");
                         if ($club_id == CLUB_CREATED_SUCCESSFULLY) {
                             $response["error"] = false;
                             $response["message_club"] = "Club created successfully";
@@ -736,13 +788,46 @@ $app->post('/poubelles/date', 'authenticate', function() use ($app) {
  * url /competition         
  */
 
-$app->get('/competition', function() {
+$app->get('/competition','authenticateSpecial', function() {
 
             $response = array();
             $db = new DbHandler();
 
+            global $user_id;
             // fetching all user poubelles
-            $result = $db->getAllCompetition();
+            $result = $db->getAllCompetition($user_id);
+
+            $response["error"] = false;
+            $response["competitions"] = array();
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+                echoRespnse(200, $result);
+        }
+
+    });
+
+
+/**
+ * Listing all competition
+ * method GET
+ * url /competition         
+ */
+
+$app->get('/checkcompetition', 'authenticate', function() {
+
+            $response = array();
+            $db = new DbHandler();
+
+            global $user_id;
+            // fetching all user poubelles
+
+            $result = $db->getCompetitionUser($user_id);
 
             $response["error"] = false;
             $response["competitions"] = array();
@@ -841,7 +926,8 @@ function verifyRequiredParams($required_fields) {
         $response = array();
         $app = \Slim\Slim::getInstance();
         $response["error"] = true;
-        $response["message"] = 'Required field(s) ' . substr($error_fields, 0, -2) . ' is missing or empty';
+        //$response["message"] = 'Required field(s) ' . substr($error_fields, 0, -2) . ' is missing or empty';
+        $response["message"] = 'Champs obligatoire(s) : ' . substr($error_fields, 0, -2) . ' est manquant ou vide';
         echoRespnse(400, $response);
         $app->stop();
     }
@@ -856,11 +942,12 @@ function validateEmail($email) {
     $app = \Slim\Slim::getInstance();
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $response["error"] = true;
-        $response["message"] = 'Email address is not valid';
+        $response["message"] = 'Adresse e-mail non valide. Veuillez saisir le bon format.';
         echoRespnse(400, $response);
         $app->stop();
     }
 }
+
 
 /**
  * Echoing json response to client
