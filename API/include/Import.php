@@ -2,7 +2,7 @@
 //index.php
 require_once dirname(__FILE__) . '/DbHandler.php';
 require_once("header.php");
-$connect = mysqli_connect("mysql.hostinger.fr", "u263286397_poubc", "Sevran93270!", "u263286397_poubc");
+
 $message = '';
 
 if(isset($_POST["upload"]))
