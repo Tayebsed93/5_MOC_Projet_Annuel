@@ -318,6 +318,38 @@ $app->get('/composition', 'authenticate', function() {
  * method GET
  * url /composition         
  */
+$app->get('/compositionDisplay', function() {
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user composition
+            $result = $db->getAllCompositionDisplay();
+            
+            
+            $response["error"] = false;
+            $response["compositions"] = array();
+            
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+
+            //array_push($response["clubs"], $result);
+            array_push($response, $result);
+            echoRespnse(200, $response);
+        }
+
+        });
+
+
+/**
+ * Listing all composition of particual user
+ * method GET
+ * url /composition         
+ */
 $app->get('/composition/result', function() {
 
             $response = array();
@@ -356,14 +388,52 @@ $app->post('/player', 'authenticate', function() use ($app) {
 
 
             // check for required params
-            verifyRequiredParams(array('nationality'));
+            verifyRequiredParams(array('nationality', 'position'));
             $nationality = $app->request()->post('nationality');
+            $position = $app->request()->post('position');
 
             $response = array();
             $db = new DbHandler();
 
             // fetching all user player
-            $result = $db->getAllPlayer($nationality);
+            $result = $db->getAllPlayer($nationality, $position);
+
+            $response["error"] = false;
+            $response["players"] = array();
+
+            // Check to see if the final result returns false
+            if($result == false) {
+                $response['error'] = true;
+
+                echoRespnse(404, $response); // echo the response of 404?
+
+            } else {
+                echoRespnse(200, $result);
+        }
+
+    });
+
+
+/**
+ * Listing all player of particual user
+ * method GET
+ * url /player         
+ */
+$app->post('/compositionCSV', function() use ($app) {
+
+
+            // check for required params
+            verifyRequiredParams(array('player', 'nation', 'competition_id'));
+            $nation = $app->request()->post('nation');
+            $player = $app->request()->post('player');
+            $competition_id = $app->request()->post('competition_id');
+
+            $response = array();
+            $db = new DbHandler();
+
+            // fetching all user player
+            //$result = $db->getAllPlayer($nationality, $position);
+            $result = $db->importCompoCSV($player, $nation, $competition_id);
 
             $response["error"] = false;
             $response["players"] = array();
@@ -561,7 +631,7 @@ $app->get('/actuality/:id', function($user_id) use($app) {
  */
 $app->post('/club', function() use ($app) {
             // check for required params
-            verifyRequiredParams(array('nom','name','email','password','role'));
+            verifyRequiredParams(array('nom','name','email','password','role','screen_name'));
 
             $response = array();
 
@@ -570,6 +640,7 @@ $app->post('/club', function() use ($app) {
             $email = $app->request->post('email');
             $password = $app->request->post('password');
             $role = $app->request->post('role');
+            $screen_name = $app->request->post('screen_name');
             $picture = NULL;
 
             //club
@@ -663,7 +734,7 @@ $app->post('/club', function() use ($app) {
 
                     // creating new club
                     //$club_id = $db->createClub($response['id'], $nom, $filelogo, $filelicense);
-                    $club_id = $db->createClub($response['id'], $nom, $filelogo, "");
+                    $club_id = $db->createClub($response['id'], $nom, $filelogo, "", $screen_name);
                         if ($club_id == CLUB_CREATED_SUCCESSFULLY) {
                             $response["error"] = false;
                             $response["message_club"] = "Club created successfully";
@@ -896,6 +967,30 @@ $app->delete('/poubelles/:id', 'authenticate', function($poubelle_id) use($app) 
                 // poubelle failed to delete
                 $response["error"] = true;
                 $response["message"] = "Poubelle failed to delete. Please try again!";
+            }
+            echoRespnse(200, $response);
+        });
+
+
+/**
+ * Deleting actuality. Users can delete only their poubelles
+ * method DELETE
+ * url /actuality
+ */
+$app->delete('/actuality/:id', 'authenticate', function($actuality_id) use($app) {
+            global $user_id;
+
+            $db = new DbHandler();
+            $response = array();
+            $result = $db->deleteActuality($user_id, $actuality_id);
+            if ($result) {
+                // poubelle deleted successfully
+                $response["error"] = false;
+                $response["message"] = "Actuality deleted succesfully";
+            } else {
+                // poubelle failed to delete
+                $response["error"] = true;
+                $response["message"] = "Actuality failed to delete. Please try again!";
             }
             echoRespnse(200, $response);
         });

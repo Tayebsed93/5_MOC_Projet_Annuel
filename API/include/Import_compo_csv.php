@@ -63,18 +63,20 @@ if (isset($_POST['upload'])) {
             $file = "$content_dir" . "$name_file";
             if (file_exists($file)) {
                 $fic = fopen($file, 'rb');
+
                 echo "<table border='1' style='width: 100%'><caption>Preview before import</caption>\n";
                 for ($ligne = fgetcsv($fic, 1024); !feof($fic); $ligne = fgetcsv($fic, 1024)) {
                     echo "<tr>";
                     $j = sizeof($ligne);
+                    
                     for ($i = 0; $i < $j; $i++) {
-                        
                         echo "<td>$ligne[$i]</td>";
                     }
                     echo "</tr>";
                 }
                 echo "</table>\n";
 ?>
+
                 <form action="index.php">
                     <input type="submit" value="Cancel">
                 </form>
@@ -97,12 +99,11 @@ if (isset($_POST['upload'])) {
     }
 }
 ?>
+
+
 <html>
     <head></head>
     <body>
-        <form method="link" action="../sales.php" >
-            <input  type="submit" value="back">
-        </form>
         <form action="" name="form_bdd" id="form_bdd" method="post" enctype="multipart/form-data">
             <input type="hidden" name="upload" value="ok">
             <input type="file" name="fichiercsv" size="16">

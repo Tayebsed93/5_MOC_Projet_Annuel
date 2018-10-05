@@ -418,9 +418,7 @@ class DbHandler {
             if ($result) {
                 // User successfully inserted
                         $new_composition_id = $this->conn->insert_id;
-                        var_dump($new_composition_id);
-                        var_dump($competition_id);
-                        var_dump($user_id);
+                        
                         $res = $this->createUserComposition($user_id, $new_composition_id, $competition_id);
                 if ($res) {
                     // composition created successfully
@@ -557,15 +555,15 @@ class DbHandler {
      * @param String $logo logo blob
      * @param String $license license blob
      */
-    public function createClub($user_id, $nom, $logo, $license) {
+    public function createClub($user_id, $nom, $logo, $license, $screen_name) {
         $response = array();
 
         // First check if user already existed in db
         if (!$this->isClubExists($nom)) {
 
             // insert query
-            $stmt = $this->conn->prepare("INSERT INTO club(nom,logo,license) VALUES(?,?,?)");
-            $stmt->bind_param("sss", $nom, $logo, $license);
+            $stmt = $this->conn->prepare("INSERT INTO club(nom,logo,license, screen_name) VALUES(?,?,?,?)");
+            $stmt->bind_param("ssss", $nom, $logo, $license, $screen_name);
             $result = $stmt->execute();
             $stmt->close();
             // Check for successful insertion
@@ -601,12 +599,12 @@ class DbHandler {
      * @param String $user_id id of the user
      */
     public function getAllClub() {
-        $stmt = $this->conn->prepare("SELECT c.*,  uc.user_id FROM club c, user_club uc WHERE uc.club_id = c.id");
+        $stmt = $this->conn->prepare("SELECT c.id, c.nom,c.logo,c.license,c.screen_name, uc.user_id FROM club c, user_club uc WHERE uc.club_id = c.id");
         //$stmt = $this->conn->prepare("SELECT * FROM club ");
          if ($stmt->execute()) {
             $res["clubs"] = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $nom, $logo, $license, $user_id);
+            $stmt->bind_result($id, $nom, $logo, $license, $screen_name, $user_id);
             // TODO
             while($stmt->fetch())
             {           
@@ -616,6 +614,7 @@ class DbHandler {
                 $temp["nom"] = $nom;
                 $temp["logo"] = $logo;
                 $temp["license"] = $license;
+                $temp["screen_name"] = $screen_name;
 
                 array_push($res["clubs"], $temp);
             }
@@ -776,6 +775,38 @@ class DbHandler {
     }
 
 
+           /**
+     * Fetching all user composition
+     * @param String $user_id id of the user
+     */
+    public function getAllCompositionDisplay() {
+         $stmt = $this->conn->prepare("SELECT c.id, c.nation, c.player, c.created_at FROM composition c WHERE c.nation != 'nation' AND c.player != 'player'");
+         if ($stmt->execute()) {
+            $res = array();
+
+            $stmt->store_result();
+            var_dump($stmt);
+            $stmt->bind_result($id, $nation, $player, $createdAt);
+            // TODO
+            while($stmt->fetch())
+            {           
+                $temp = array();
+                $temp["id"] = $id;
+                $temp["nation"] = $nation;
+                $temp["player"] = $player;
+                $temp["createdAt"] = $createdAt;
+                
+                array_push($res, $temp);
+            }
+
+            $stmt->close();
+            return $res;
+        } else {
+            return NULL;
+        }
+    }
+
+
         /**
      * Fetching all user composition
      * @param String $user_id id of the user
@@ -828,6 +859,18 @@ class DbHandler {
     }
 
 
+     /**
+     * Delete actuality sauf admin
+     */
+    public function deleteActuality($user_id, $actuality_id) {
+        $stmt = $this->conn->prepare("DELETE a.*, ua.* FROM actuality a, user_actuality ua WHERE a.id = $actuality_id AND ua.user_id = $user_id AND ua.actuality_id = $actuality_id");
+        $stmt->execute();
+        $num_affected_rows = $stmt->affected_rows;
+        $stmt->close();
+        return $num_affected_rows > 0;
+    }
+
+
                 /**
      * Create view composition no admin
      * @param no param
@@ -871,13 +914,13 @@ class DbHandler {
      * Fetching all user composition
      * @param String $user_id id of the user
      */
-    public function getAllPlayer($nationality) {
+    public function getAllPlayer($nationality, $position) {
 
-          $stmt = $this->conn->prepare("SELECT id, Name, Age FROM player WHERE Rating > 78 AND Nationality = '$nationality'");
+          $stmt = $this->conn->prepare("SELECT id, Name, Age, National_Position FROM player WHERE Rating > 78 AND Nationality = '$nationality' AND National_Position = '$position'");
          if ($stmt->execute()) {
             $res["players"] = array();
             $stmt->store_result();
-            $stmt->bind_result($id, $Name, $Age);
+            $stmt->bind_result($id, $Name, $Age, $National_Position);
             // TODO
             while($stmt->fetch())
             {           
@@ -885,6 +928,7 @@ class DbHandler {
                 $temp["id"] = $id;
                 $temp["Name"] = $Name;
                 $temp["Age"] = $Age;
+                $temp["National_Position"] = $National_Position;
 
                 array_push($res["players"], $temp);
             }
@@ -985,8 +1029,7 @@ class DbHandler {
             if ($result) {
                 // User successfully inserted
                         $new_composition_id = $this->conn->insert_id;
-                        var_dump($new_composition_id);
-                        var_dump($competition_id);
+             
                         $res = $this->createUserComposition(42, $new_composition_id, $competition_id);
                 if ($res) {
                     // composition created successfully
